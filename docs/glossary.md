@@ -5,13 +5,21 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Identidade & Acesso (`identity`)
 
-| Termo do negócio | Código                      | Definição                                               |
-| ---------------- | --------------------------- | ------------------------------------------------------- |
-| Usuário          | `User`                      | Pessoa com acesso à API, identificada por e-mail        |
-| Cliente          | `Role.CUSTOMER`             | Usuário que compra; vê apenas os próprios pedidos       |
-| Operador         | `Role.OPERATOR`             | Funcionário que administra catálogo e estoque           |
-| E-mail           | `Email`                     | Endereço único, normalizado em minúsculas               |
-| Senha            | `Password` / `PasswordHash` | Segredo com regras mínimas; armazenado apenas como hash |
+| Termo do negócio   | Código                                       | Definição                                               |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------- |
+| Usuário            | `User`                                       | Pessoa com acesso à API, identificada por e-mail        |
+| Cliente            | `Role.CUSTOMER`                              | Usuário que compra; vê apenas os próprios pedidos       |
+| Operador           | `Role.OPERATOR`                              | Funcionário que administra catálogo e estoque           |
+| Nome               | `Name`                                       | Nome de exibição, de 2 a 100 caracteres                 |
+| E-mail             | `Email`                                      | Endereço único, normalizado em minúsculas               |
+| Senha              | `Password` / `PasswordHash`                  | Segredo com regras mínimas; armazenado apenas como hash |
+| Cadastrar-se       | `SignUpUseCase`                              | Cria um cliente; o e-mail não pode estar em uso         |
+| Entrar             | `SignInUseCase`                              | Confere e-mail e senha; erro único para qualquer falha  |
+| Usuário cadastrado | `UserRegistered`                             | Evento registrado quando um usuário é criado            |
+| Perfil             | `GetProfileUseCase` / `UpdateProfileUseCase` | Dados do próprio usuário: nome e e-mail                 |
+| Trocar a senha     | `ChangePasswordUseCase`                      | Exige a senha atual; a nova segue as regras mínimas     |
+| Excluir a conta    | `DeleteAccountUseCase`                       | Remove o próprio usuário                                |
+| Listar usuários    | `ListUsersUseCase`                           | Lista todos os usuários por nome; só para operadores    |
 
 ## Catálogo (`catalog`)
 
