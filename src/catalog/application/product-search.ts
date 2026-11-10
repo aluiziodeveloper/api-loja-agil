@@ -7,6 +7,11 @@ export type ProductSortField = 'name' | 'price' | 'sku';
 
 export type ProductSearchParams = SearchParams<ProductSortField>;
 
+export type ProductSearchCriteria = {
+  params: ProductSearchParams;
+  activeOnly: boolean;
+};
+
 export function productSearchParams(
   input: SearchParamsInput,
 ): ProductSearchParams {
