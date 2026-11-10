@@ -7,6 +7,9 @@
     "typescript/no-floating-promises": "error",
     "typescript/consistent-type-imports": "error",
     "eslint/no-console": "error",
-    "eslint/eqeqeq": "error"
+    "eslint/eqeqeq": "error",
+    "eslint/curly": "error",
+    "eslint/max-depth": ["error", 1],
+    "eslint/no-else-return": ["error", { "allowElseIf": false }]
   }
 }
