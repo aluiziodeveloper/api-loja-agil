@@ -21,7 +21,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "format:check": "prettier --check .",
     "lint:fix": "oxlint --type-aware --fix src/ test/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "arch": "depcruise src --config .dependency-cruiser.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -39,6 +40,7 @@
     "@nestjs/testing": "^12.0.1",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
+    "dependency-cruiser": "^18.7.2",
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.4.2",
