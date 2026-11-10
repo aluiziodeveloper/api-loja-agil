@@ -1,4 +1,5 @@
 import type { Money } from '../../../shared/domain/money.value-object.js';
+import type { DiscountSnapshot } from './coupon.snapshot.js';
 
 /**
  * Strategy: cada tipo de cupom calcula o desconto do seu jeito, e o pedido
@@ -6,4 +7,5 @@ import type { Money } from '../../../shared/domain/money.value-object.js';
  */
 export interface DiscountPolicy {
   discountFor(subtotal: Money): Money;
+  toSnapshot(): DiscountSnapshot;
 }

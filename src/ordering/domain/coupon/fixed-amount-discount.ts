@@ -1,4 +1,5 @@
 import { Money } from '../../../shared/domain/money.value-object.js';
+import type { DiscountSnapshot } from './coupon.snapshot.js';
 import type { DiscountPolicy } from './discount-policy.js';
 import { InvalidDiscountError } from './invalid-discount.error.js';
 
@@ -15,5 +16,9 @@ export class FixedAmountDiscount implements DiscountPolicy {
 
   discountFor(subtotal: Money): Money {
     return this.amount.min(subtotal);
+  }
+
+  toSnapshot(): DiscountSnapshot {
+    return { type: 'FIXED_AMOUNT', amountInCents: this.amount.toCents() };
   }
 }
