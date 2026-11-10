@@ -4,6 +4,7 @@ import { Customer } from './customer.js';
 import { Money } from './money.js';
 import { OrderLine } from './order-line.js';
 import { OrderLines } from './order-lines.js';
+import { Product } from './product.js';
 import { Quantity } from './quantity.js';
 
 export type OrderItemInput = {
@@ -43,11 +44,8 @@ export class OrderPricing {
   }
 
   private toOrderLine(item: OrderItemInput): OrderLine {
-    return OrderLine.of(
-      item.sku,
-      Quantity.of(item.quantity),
-      Money.ofCents(item.unitPriceInCents),
-    );
+    const product = Product.of(item.sku, Money.ofCents(item.unitPriceInCents));
+    return OrderLine.of(product, Quantity.of(item.quantity));
   }
 
   private applyCoupon(amount: Money, couponCode?: string): Money {
