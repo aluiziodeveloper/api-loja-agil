@@ -3,6 +3,8 @@
  * Contextos: identity, catalog, inventory, ordering. Shared Kernel: shared.
  */
 const contexts = '(identity|catalog|inventory|ordering)';
+/** Arquivos de teste: specs e utilitários em pastas __tests__ (builders, fakes). */
+const testCode = '(\\.(spec|int-spec|e2e-spec)\\.ts$|/__tests__/)';
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
@@ -12,7 +14,7 @@ module.exports = {
       comment:
         'O domínio só depende do próprio domínio e do shared/domain. Nada de framework, ORM ou bibliotecas.',
       severity: 'error',
-      from: { path: '^src/([^/]+)/domain/' },
+      from: { path: '^src/([^/]+)/domain/', pathNot: testCode },
       to: {
         pathNot: ['^src/$1/domain/', '^src/shared/domain/'],
         dependencyTypesNot: ['core'],
@@ -51,8 +53,8 @@ module.exports = {
       name: 'no-test-code-in-production',
       comment: 'Código de produção não importa arquivos de teste.',
       severity: 'error',
-      from: { pathNot: '\\.(spec|int-spec|e2e-spec)\\.ts$' },
-      to: { path: '\\.(spec|int-spec|e2e-spec)\\.ts$' },
+      from: { pathNot: testCode },
+      to: { path: testCode },
     },
     {
       name: 'no-circular',
