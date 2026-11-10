@@ -60,13 +60,23 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Pedidos (`ordering`)
 
-| Termo do negócio | Código                | Definição                                             |
-| ---------------- | --------------------- | ----------------------------------------------------- |
-| Pedido           | `Order`               | Intenção de compra de um cliente; agregado raiz       |
-| Item do pedido   | `OrderItem`           | SKU, preço congelado e quantidade                     |
-| Rascunho         | `OrderStatus.DRAFT`   | Pedido ainda editável                                 |
-| Confirmar pedido | `Order.place()`       | Fecha o pedido e solicita a reserva de estoque        |
-| Pago             | `OrderStatus.PAID`    | Pagamento aprovado; estoque baixado                   |
-| Enviado          | `OrderStatus.SHIPPED` | Pedido despachado; não pode mais ser cancelado        |
-| Cancelar         | `Order.cancel()`      | Encerra o pedido e libera as reservas                 |
-| Cupom            | `Coupon`              | Desconto percentual com teto e valor mínimo de pedido |
+| Termo do negócio          | Código                            | Definição                                                                 |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------------------- |
+| Pedido                    | `Order`                           | Intenção de compra de um cliente; agregado que cuida do ciclo de vida     |
+| Cesta                     | `Basket`                          | Itens, cupom e valores do pedido                                          |
+| Item do pedido            | `OrderItem`                       | SKU, preço congelado na inclusão (RN10) e quantidade                      |
+| Quantidade                | `Quantity`                        | De 1 a 100 unidades por item (RN09)                                       |
+| Itens do pedido           | `OrderItems`                      | Até 20 SKUs distintos; o mesmo SKU agrupa as quantidades (RN09)           |
+| Rascunho                  | `OrderStatus.DRAFT`               | Pedido ainda editável: itens e cupom só mudam aqui                        |
+| Confirmar pedido          | `place()` / `PlaceOrderUseCase`   | Fecha o pedido e anuncia `OrderPlaced` para a reserva de estoque          |
+| Pagar                     | `pay()` / `PayOrderUseCase`       | Pagamento aprovado (simulado); anuncia `OrderPaid` para a baixa           |
+| Enviar                    | `ship()` / `ShipOrderUseCase`     | Pedido despachado; não pode mais ser cancelado                            |
+| Cancelar                  | `cancel()` / `CancelOrderUseCase` | Encerra o pedido; `OrderCancelled` diz o estado anterior                  |
+| Ciclo de vida             | `ensureTransition`                | `DRAFT → PLACED → PAID → SHIPPED`; cancelar até antes do envio (RN11)     |
+| Cupom                     | `Coupon`                          | Desconto com código, valor mínimo do pedido e validade; um por pedido     |
+| Código do cupom           | `CouponCode`                      | De 4 a 20 letras ou números, sem diferença de maiúsculas                  |
+| Política de desconto      | `DiscountPolicy`                  | Strategy: `PercentageDiscount` (com teto, RN14) ou `FixedAmountDiscount`  |
+| Regra de elegibilidade    | `Specification` / `allOf`         | `MinimumOrderValue` e `ValidUntil`: o cupom vale para este pedido?        |
+| Subtotal, desconto, total | `prices()`                        | Soma dos itens, desconto do cupom (zero se deixou de valer) e a diferença |
+| Catálogo de produtos      | `ProductCatalog`                  | Porta para o Catálogo: preço e se o produto está ativo (RN06)             |
+| Meus pedidos              | `ListCustomerOrdersUseCase`       | Pedidos de um cliente, paginados, os mais recentes primeiro               |
