@@ -18,8 +18,25 @@ export class Money extends ValueObject<{ cents: number }> {
     return Money.fromCents(this.props.cents + other.props.cents);
   }
 
+  subtract(other: Money): Money {
+    return Money.fromCents(this.props.cents - other.props.cents);
+  }
+
   multiply(factor: number): Money {
     return Money.fromCents(this.props.cents * factor);
+  }
+
+  /** Percentual do valor, arredondado para o centavo mais próximo. */
+  percentage(percent: number): Money {
+    return Money.fromCents(Math.round((this.props.cents * percent) / 100));
+  }
+
+  min(other: Money): Money {
+    return this.isGreaterThan(other) ? other : this;
+  }
+
+  isLessThan(other: Money): boolean {
+    return this.props.cents < other.props.cents;
   }
 
   isGreaterThan(other: Money): boolean {

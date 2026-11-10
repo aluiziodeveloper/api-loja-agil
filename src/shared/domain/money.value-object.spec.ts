@@ -70,4 +70,47 @@ describe('Money', () => {
 
     expect(price.toCents()).toBe(4990);
   });
+
+  describe('discount math', () => {
+    it('should subtract, never going below zero', () => {
+      expect(Money.fromCents(5000).subtract(Money.fromCents(1200))).toEqual(
+        Money.fromCents(3800),
+      );
+      expect(() =>
+        Money.fromCents(1000).subtract(Money.fromCents(1001)),
+      ).toThrow(InvalidMoneyError);
+    });
+
+    it.each([
+      { amount: 4990, percent: 10, expected: 499, case: '10% of R$ 49,90' },
+      {
+        amount: 99,
+        percent: 15,
+        expected: 15,
+        case: 'rounding to the nearest cent',
+      },
+      { amount: 10, percent: 5, expected: 1, case: 'rounding half a cent up' },
+    ])(
+      'should compute a percentage, $case',
+      ({ amount, percent, expected }) => {
+        expect(Money.fromCents(amount).percentage(percent)).toEqual(
+          Money.fromCents(expected),
+        );
+      },
+    );
+
+    it('should pick the smaller amount', () => {
+      const cap = Money.fromCents(2000);
+
+      expect(Money.fromCents(3500).min(cap)).toEqual(cap);
+      expect(Money.fromCents(1500).min(cap)).toEqual(Money.fromCents(1500));
+    });
+
+    it('should tell whether it is below another amount', () => {
+      expect(Money.fromCents(999).isLessThan(Money.fromCents(1000))).toBe(true);
+      expect(Money.fromCents(1000).isLessThan(Money.fromCents(1000))).toBe(
+        false,
+      );
+    });
+  });
 });
