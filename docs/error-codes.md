@@ -34,4 +34,16 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 | `SKU_ALREADY_IN_USE`   | `SkuAlreadyInUseError`    | Cadastro de produto com um SKU já usado    | 409  |
 | `PRODUCT_NOT_FOUND`    | `ProductNotFoundError`    | Produto inexistente                        | 404  |
 
+## Estoque
+
+| Código                      | Classe                         | Quando acontece                                       | HTTP |
+| --------------------------- | ------------------------------ | ----------------------------------------------------- | ---- |
+| `INVALID_STOCK_QUANTITY`    | `InvalidStockQuantityError`    | Quantidade negativa ou fracionada                     | 400  |
+| `EMPTY_STOCK_MOVEMENT`      | `EmptyStockMovementError`      | Entrada, reserva, liberação ou baixa de zero unidades | 400  |
+| `MISSING_ADJUSTMENT_REASON` | `MissingAdjustmentReasonError` | Ajuste de inventário sem motivo                       | 400  |
+| `STOCK_BELOW_RESERVED`      | `StockBelowReservedError`      | Contagem menor que a quantidade reservada             | 409  |
+| `INSUFFICIENT_STOCK`        | `InsufficientStockError`       | Reserva maior que o disponível                        | 409  |
+| `RESERVED_STOCK_EXCEEDED`   | `ReservedStockExceededError`   | Liberação ou baixa maior que o reservado              | 409  |
+| `STOCK_ITEM_NOT_FOUND`      | `StockItemNotFoundError`       | SKU sem estoque registrado                            | 404  |
+
 Ao criar um erro de domínio, acrescente uma linha aqui no mesmo pull request.
