@@ -46,4 +46,23 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 | `RESERVED_STOCK_EXCEEDED`   | `ReservedStockExceededError`   | Liberação ou baixa maior que o reservado              | 409  |
 | `STOCK_ITEM_NOT_FOUND`      | `StockItemNotFoundError`       | SKU sem estoque registrado                            | 404  |
 
+## Pedidos
+
+| Código                     | Classe                        | Quando acontece                                  | HTTP |
+| -------------------------- | ----------------------------- | ------------------------------------------------ | ---- |
+| `INVALID_QUANTITY`         | `InvalidQuantityError`        | Quantidade fora de 1 a 100, ou soma acima de 100 | 400  |
+| `TOO_MANY_ORDER_ITEMS`     | `TooManyOrderItemsError`      | Mais de 20 SKUs distintos no pedido              | 422  |
+| `ORDER_ITEM_NOT_FOUND`     | `OrderItemNotFoundError`      | Remoção de um SKU que não está no pedido         | 404  |
+| `ORDER_NOT_EDITABLE`       | `OrderNotEditableError`       | Itens ou cupom alterados fora do rascunho        | 409  |
+| `EMPTY_ORDER`              | `EmptyOrderError`             | Confirmação de um pedido sem itens               | 422  |
+| `INVALID_ORDER_TRANSITION` | `InvalidOrderTransitionError` | Mudança de estado fora do ciclo de vida          | 409  |
+| `INVALID_COUPON_CODE`      | `InvalidCouponCodeError`      | Código fora do formato                           | 400  |
+| `INVALID_DISCOUNT`         | `InvalidDiscountError`        | Percentual fora de 1 a 100, ou valor fixo zero   | 400  |
+| `COUPON_NOT_APPLICABLE`    | `CouponNotApplicableError`    | Pedido abaixo do mínimo, ou cupom vencido        | 422  |
+| `COUPON_ALREADY_APPLIED`   | `CouponAlreadyAppliedError`   | Segundo cupom no mesmo pedido                    | 409  |
+| `ORDER_NOT_FOUND`          | `OrderNotFoundError`          | Pedido inexistente                               | 404  |
+| `PRODUCT_UNAVAILABLE`      | `ProductUnavailableError`     | Produto inativo ou fora do catálogo              | 422  |
+| `COUPON_NOT_FOUND`         | `CouponNotFoundError`         | Código de cupom inexistente                      | 404  |
+| `COUPON_CODE_IN_USE`       | `CouponCodeInUseError`        | Cadastro de cupom com código repetido            | 409  |
+
 Ao criar um erro de domínio, acrescente uma linha aqui no mesmo pull request.
