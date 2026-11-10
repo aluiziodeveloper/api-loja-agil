@@ -1,0 +1,20 @@
+# Dependências e build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Testes
+coverage/
+reports/
+.stryker-tmp/
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.idea/
+*.log
