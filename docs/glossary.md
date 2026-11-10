@@ -23,12 +23,20 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Catálogo (`catalog`)
 
-| Termo do negócio      | Código                                        | Definição                                  |
-| --------------------- | --------------------------------------------- | ------------------------------------------ |
-| Produto               | `Product`                                     | Item vendável do catálogo                  |
-| SKU                   | `Sku`                                         | Código único do produto (ex.: `CAMISA-AZ`) |
-| Preço                 | `Money`                                       | Valor em centavos de real; nunca negativo  |
-| Produto ativo/inativo | `Product.activate()` / `Product.deactivate()` | Só produtos ativos podem ser pedidos       |
+| Termo do negócio      | Código                                                | Definição                                                           |
+| --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| Produto               | `Product`                                             | Item vendável do catálogo; o SKU não muda depois de criado          |
+| SKU                   | `Sku`                                                 | Código único do produto, `ABC123[-VAR]` (ex.: `CAM123-AZUL`)        |
+| Nome do produto       | `ProductName`                                         | Nome de exibição, de 2 a 120 caracteres                             |
+| Preço                 | `Money` (Shared Kernel)                               | Valor em centavos de real; inteiro e nunca negativo                 |
+| Produto ativo/inativo | `Product.activate()` / `Product.deactivate()`         | Só produtos ativos aparecem para clientes e podem ser pedidos       |
+| Cadastrar produto     | `CreateProductUseCase`                                | Cria um produto ativo; o SKU não pode estar em uso                  |
+| Consultar produto     | `GetProductUseCase`                                   | Dados de um produto, ativo ou não                                   |
+| Alterar produto       | `UpdateProductUseCase`                                | Muda nome e/ou preço                                                |
+| Ativar / inativar     | `ActivateProductUseCase` / `DeactivateProductUseCase` | Liga ou desliga a venda do produto                                  |
+| Buscar produtos       | `SearchProductsUseCase`                               | Filtro por nome ou SKU, ordenação e paginação; só ativos por padrão |
+| Parâmetros de busca   | `SearchParams` (Shared Kernel)                        | Página, itens por página (1 a 100), ordenação e filtro validados    |
+| Página de resultados  | `SearchResult` (Shared Kernel)                        | Itens da página, total e última página                              |
 
 ## Estoque (`inventory`)
 
