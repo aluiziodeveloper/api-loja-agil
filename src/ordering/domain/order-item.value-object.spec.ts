@@ -19,6 +19,7 @@ describe('OrderItem', () => {
   });
 
   it('should tell whether it is for a SKU', () => {
+    expect(mugs(1).sku()).toEqual(MUG);
     expect(mugs(1).isFor(MUG)).toBe(true);
     expect(mugs(1).isFor(Sku.create('CAM001'))).toBe(false);
   });
