@@ -5,6 +5,7 @@ import { Product, type ProductSnapshot } from '../../domain/product.entity.js';
 import type { Sku } from '../../domain/sku.value-object.js';
 import type { ProductRepository } from '../ports/product.repository.js';
 import type {
+  ProductSearchCriteria,
   ProductSearchParams,
   ProductSortField,
 } from '../product-search.js';
@@ -20,7 +21,10 @@ const comparators: Record<ProductSortField, Comparator> = {
 };
 
 /** Ignora maiúsculas, como o modo "insensitive" do Prisma; acentos importam. */
-function matches(snapshot: ProductSnapshot, filter: string | null): boolean {
+function matchesFilter(
+  snapshot: ProductSnapshot,
+  filter: string | null,
+): boolean {
   if (filter === null) {
     return true;
   }
@@ -28,6 +32,16 @@ function matches(snapshot: ProductSnapshot, filter: string | null): boolean {
   return [snapshot.name, snapshot.sku].some((text) =>
     text.toLowerCase().includes(term),
   );
+}
+
+function matches(
+  snapshot: ProductSnapshot,
+  { params, activeOnly }: ProductSearchCriteria,
+): boolean {
+  if (activeOnly && !snapshot.active) {
+    return false;
+  }
+  return matchesFilter(snapshot, params.filter());
 }
 
 /** Empates são desfeitos pelo id, para a paginação ser estável. */
@@ -56,9 +70,12 @@ export class InMemoryProductRepository implements ProductRepository {
     return this.restore(all.find((snapshot) => snapshot.sku === code));
   }
 
-  async search(params: ProductSearchParams): Promise<SearchResult<Product>> {
+  async search(
+    criteria: ProductSearchCriteria,
+  ): Promise<SearchResult<Product>> {
+    const { params } = criteria;
     const matching = [...this.snapshots.values()]
-      .filter((snapshot) => matches(snapshot, params.filter()))
+      .filter((snapshot) => matches(snapshot, criteria))
       .sort(compareBy(params));
     const start = params.offset();
     const page = matching.slice(start, start + params.perPage());

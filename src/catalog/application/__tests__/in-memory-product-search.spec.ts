@@ -1,5 +1,6 @@
 import { aProduct } from '../../domain/__tests__/product.builder.js';
 import type { Product } from '../../domain/product.entity.js';
+import type { SearchParamsInput } from '../../../shared/application/search/search-params.js';
 import { productSearchParams } from '../product-search.js';
 import { InMemoryProductRepository } from './in-memory-product.repository.js';
 
@@ -9,6 +10,10 @@ function names(products: Product[]): string[] {
 
 describe('InMemoryProductRepository.search', () => {
   let products: InMemoryProductRepository;
+
+  function search(input: SearchParamsInput, activeOnly = false) {
+    return products.search({ params: productSearchParams(input), activeOnly });
+  }
 
   beforeEach(async () => {
     products = new InMemoryProductRepository();
@@ -35,7 +40,7 @@ describe('InMemoryProductRepository.search', () => {
   });
 
   it('should sort by name in Portuguese by default, including inactive products', async () => {
-    const result = await products.search(productSearchParams({}));
+    const result = await search({});
 
     expect(names(result.toOutput().items)).toEqual([
       'Adesivo',
@@ -48,12 +53,8 @@ describe('InMemoryProductRepository.search', () => {
   });
 
   it('should filter by name or SKU, ignoring case', async () => {
-    const byName = await products.search(
-      productSearchParams({ filter: 'AZUL' }),
-    );
-    const bySku = await products.search(
-      productSearchParams({ filter: 'can0' }),
-    );
+    const byName = await search({ filter: 'AZUL' });
+    const bySku = await search({ filter: 'can0' });
 
     expect(names(byName.toOutput().items)).toEqual([
       'Boné Azul',
@@ -63,9 +64,7 @@ describe('InMemoryProductRepository.search', () => {
   });
 
   it('should sort by price, breaking ties by id', async () => {
-    const result = await products.search(
-      productSearchParams({ sort: 'price', sortDirection: 'desc' }),
-    );
+    const result = await search({ sort: 'price', sortDirection: 'desc' });
 
     const prices = result
       .toOutput()
@@ -79,7 +78,7 @@ describe('InMemoryProductRepository.search', () => {
   });
 
   it('should sort by SKU', async () => {
-    const result = await products.search(productSearchParams({ sort: 'sku' }));
+    const result = await search({ sort: 'sku' });
 
     expect(
       result.toOutput().items.map((item) => item.toSnapshot().sku),
@@ -87,9 +86,7 @@ describe('InMemoryProductRepository.search', () => {
   });
 
   it('should return the requested page and the total before paging', async () => {
-    const result = await products.search(
-      productSearchParams({ page: 2, perPage: 2 }),
-    );
+    const result = await search({ page: 2, perPage: 2 });
 
     expect(names(result.toOutput().items)).toEqual([
       'Boné Azul',
@@ -98,8 +95,15 @@ describe('InMemoryProductRepository.search', () => {
     expect(result.toOutput()).toMatchObject({ total: 5, page: 2, lastPage: 3 });
   });
 
+  it('should leave inactive products out when asked', async () => {
+    const result = await search({}, true);
+
+    expect(names(result.toOutput().items)).not.toContain('Almofada');
+    expect(result.toOutput().total).toBe(4);
+  });
+
   it('should return an empty page beyond the last one', async () => {
-    const result = await products.search(productSearchParams({ page: 9 }));
+    const result = await search({ page: 9 });
 
     expect(result.toOutput()).toMatchObject({
       items: [],
