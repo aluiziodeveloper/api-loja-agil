@@ -10,6 +10,27 @@
     "eslint/eqeqeq": "error",
     "eslint/curly": "error",
     "eslint/max-depth": ["error", 1],
-    "eslint/no-else-return": ["error", { "allowElseIf": false }]
-  }
+    "eslint/no-else-return": ["error", { "allowElseIf": false }],
+    "eslint/id-length": ["error", { "min": 2, "exceptions": ["_"] }],
+    "eslint/max-lines-per-function": [
+      "error",
+      { "max": 15, "skipBlankLines": true, "skipComments": true }
+    ],
+    "eslint/max-lines": [
+      "error",
+      { "max": 100, "skipBlankLines": true, "skipComments": true }
+    ],
+    "eslint/max-params": ["error", 3],
+    "eslint/max-classes-per-file": ["error", 1]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.spec.ts", "**/*.e2e-spec.ts"],
+      "rules": {
+        "eslint/max-lines-per-function": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-classes-per-file": "off"
+      }
+    }
+  ]
 }
