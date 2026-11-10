@@ -1,4 +1,5 @@
 import { ValueObject } from '../../shared/domain/value-object.js';
+import { EmptyStockMovementError } from './empty-stock-movement.error.js';
 import { InsufficientStockError } from './insufficient-stock.error.js';
 import { ReservedStockExceededError } from './reserved-stock-exceeded.error.js';
 import { StockBelowReservedError } from './stock-below-reserved.error.js';
@@ -8,6 +9,12 @@ type StockLevelProps = {
   onHand: StockQuantity;
   reserved: StockQuantity;
 };
+
+function ensureNotEmpty(quantity: StockQuantity): void {
+  if (quantity.isZero()) {
+    throw new EmptyStockMovementError();
+  }
+}
 
 export type StockLevelChange = {
   onHandChange: number;
@@ -32,6 +39,7 @@ export class StockLevel extends ValueObject<StockLevelProps> {
   }
 
   receive(quantity: StockQuantity): StockLevel {
+    ensureNotEmpty(quantity);
     return StockLevel.of(this.props.onHand.add(quantity), this.props.reserved);
   }
 
@@ -40,6 +48,7 @@ export class StockLevel extends ValueObject<StockLevelProps> {
   }
 
   reserve(quantity: StockQuantity): StockLevel {
+    ensureNotEmpty(quantity);
     const available = this.available();
     if (available.isLessThan(quantity)) {
       throw new InsufficientStockError(
@@ -63,6 +72,15 @@ export class StockLevel extends ValueObject<StockLevelProps> {
     return this.props.onHand.subtract(this.props.reserved);
   }
 
+  isBelow(minimum: StockQuantity): boolean {
+    return this.available().isLessThan(minimum);
+  }
+
+  /** Só o cruzamento conta: estava no mínimo ou acima e agora está abaixo. */
+  fellBelow(minimum: StockQuantity, previous: StockLevel): boolean {
+    return this.isBelow(minimum) && !previous.isBelow(minimum);
+  }
+
   changeTo(next: StockLevel): StockLevelChange {
     const current = this.toPrimitives();
     const after = next.toPrimitives();
@@ -80,6 +98,7 @@ export class StockLevel extends ValueObject<StockLevelProps> {
   }
 
   private takeReserved(quantity: StockQuantity): StockQuantity {
+    ensureNotEmpty(quantity);
     const { reserved } = this.props;
     if (reserved.isLessThan(quantity)) {
       throw new ReservedStockExceededError(

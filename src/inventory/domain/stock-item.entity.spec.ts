@@ -1,6 +1,8 @@
 import { Sku } from '../../shared/domain/sku.value-object.js';
 import { AdjustmentReason } from './adjustment-reason.value-object.js';
-import { StockItem, type StockItemSnapshot } from './stock-item.entity.js';
+import { LowStockDetected } from './low-stock-detected.event.js';
+import { StockItem } from './stock-item.entity.js';
+import type { StockItemSnapshot } from './stock-item.snapshot.js';
 import { StockMovementType } from './stock-movement.js';
 import { StockQuantity } from './stock-quantity.value-object.js';
 
@@ -8,10 +10,7 @@ const NOW = new Date('2026-11-10T12:00:00.000Z');
 const MONTHLY_COUNT = AdjustmentReason.create('Contagem mensal');
 
 function newMugStock(): StockItem {
-  return StockItem.create({
-    sku: Sku.create('can001'),
-    minimumLevel: StockQuantity.of(5),
-  });
+  return StockItem.create(Sku.create('can001'), StockQuantity.of(5));
 }
 
 const storedMugStock: StockItemSnapshot = {
@@ -184,6 +183,53 @@ describe('StockItem', () => {
       expect(() => act(StockItem.restore(storedMugStock))).toThrow(
         expect.objectContaining({ code: 'EMPTY_STOCK_MOVEMENT' }),
       );
+    });
+  });
+
+  describe('minimum level', () => {
+    it('should alert when a movement takes the available units below the minimum', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      stock.reserve(StockQuantity.of(8));
+
+      const [event] = stock.pullDomainEvents();
+      expect(event).toBeInstanceOf(LowStockDetected);
+      expect(event).toMatchObject({
+        eventName: 'LowStockDetected',
+        aggregateId: storedMugStock.id,
+        sku: 'CAN001',
+        available: 4,
+        minimumLevel: 5,
+        occurredAt: NOW,
+      });
+    });
+
+    it('should alert only once while the stock stays low', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      stock.reserve(StockQuantity.of(8));
+      stock.reserve(StockQuantity.of(1));
+
+      expect(stock.pullDomainEvents()).toHaveLength(1);
+    });
+
+    it('should not alert while the stock stays at or above the minimum', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      stock.reserve(StockQuantity.of(7));
+
+      expect(stock.isBelowMinimum()).toBe(false);
+      expect(stock.pullDomainEvents()).toEqual([]);
+    });
+
+    it('should change the minimum level without alerting', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      stock.changeMinimumLevel(StockQuantity.of(15));
+
+      expect(stock.toSnapshot().minimumLevel).toBe(15);
+      expect(stock.isBelowMinimum()).toBe(true);
+      expect(stock.pullDomainEvents()).toEqual([]);
     });
   });
 });

@@ -2,7 +2,8 @@ import { AggregateRoot } from '../../shared/domain/aggregate-root.js';
 import { Sku } from '../../shared/domain/sku.value-object.js';
 import { UniqueId } from '../../shared/domain/unique-id.value-object.js';
 import type { AdjustmentReason } from './adjustment-reason.value-object.js';
-import { EmptyStockMovementError } from './empty-stock-movement.error.js';
+import { LowStockDetected } from './low-stock-detected.event.js';
+import type { StockItemSnapshot } from './stock-item.snapshot.js';
 import { StockLevel } from './stock-level.value-object.js';
 import {
   stockMovement,
@@ -15,16 +16,6 @@ type StockItemProps = {
   sku: Sku;
   level: StockLevel;
   minimumLevel: StockQuantity;
-};
-
-export type CreateStockItemProps = Pick<StockItemProps, 'sku' | 'minimumLevel'>;
-
-export type StockItemSnapshot = {
-  id: string;
-  sku: string;
-  onHand: number;
-  reserved: number;
-  minimumLevel: number;
 };
 
 /** Operações do nível que movimentam uma quantidade positiva. */
@@ -40,9 +31,10 @@ export class StockItem extends AggregateRoot {
     super(id);
   }
 
-  static create(props: CreateStockItemProps): StockItem {
+  static create(sku: Sku, minimumLevel: StockQuantity): StockItem {
     return new StockItem(UniqueId.create(), {
-      ...props,
+      sku,
+      minimumLevel,
       level: StockLevel.empty(),
     });
   }
@@ -78,8 +70,16 @@ export class StockItem extends AggregateRoot {
     }
   }
 
+  changeMinimumLevel(minimumLevel: StockQuantity): void {
+    this.props = { ...this.props, minimumLevel };
+  }
+
   available(): StockQuantity {
     return this.props.level.available();
+  }
+
+  isBelowMinimum(): boolean {
+    return this.props.level.isBelow(this.props.minimumLevel);
   }
 
   pullMovements(): StockMovement[] {
@@ -95,15 +95,12 @@ export class StockItem extends AggregateRoot {
     };
   }
 
-  /** Entrada, reserva, liberação e baixa: quantidade positiva e um movimento. */
+  /** Entrada, reserva, liberação e baixa: cada uma gera um movimento. */
   private move(
     type: StockMovementType,
     quantity: StockQuantity,
     operation: LevelOperation,
   ): void {
-    if (quantity.isZero()) {
-      throw new EmptyStockMovementError();
-    }
     this.changeLevel(type, this.props.level[operation](quantity));
   }
 
@@ -112,8 +109,11 @@ export class StockItem extends AggregateRoot {
     next: StockLevel,
     reason?: string,
   ): void {
-    const change = this.props.level.changeTo(next);
+    const previous = this.props.level;
     this.props = { ...this.props, level: next };
-    this.movements.push(stockMovement(type, change, reason));
+    this.movements.push(stockMovement(type, previous.changeTo(next), reason));
+    if (next.fellBelow(this.props.minimumLevel, previous)) {
+      this.record(new LowStockDetected(this.toSnapshot()));
+    }
   }
 }

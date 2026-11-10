@@ -22,6 +22,17 @@ describe('StockLevel', () => {
     );
   });
 
+  it.each([
+    ['receive', (stock: StockLevel) => stock.receive(StockQuantity.zero())],
+    ['reserve', (stock: StockLevel) => stock.reserve(StockQuantity.zero())],
+    ['release', (stock: StockLevel) => stock.release(StockQuantity.zero())],
+    ['commit', (stock: StockLevel) => stock.commit(StockQuantity.zero())],
+  ])('should refuse to %s zero units', (_operation, act) => {
+    expect(() => act(level(20, 8))).toThrow(
+      expect.objectContaining({ code: 'EMPTY_STOCK_MOVEMENT' }),
+    );
+  });
+
   it('should add received units to the stock on hand', () => {
     expect(level(20, 8).receive(StockQuantity.of(5))).toEqual(level(25, 8));
   });
@@ -86,5 +97,46 @@ describe('StockLevel', () => {
         }),
       );
     });
+  });
+
+  describe('minimum level', () => {
+    const minimum = StockQuantity.of(5);
+
+    it('should tell whether the available units are below a minimum', () => {
+      expect(level(10, 6).isBelow(minimum)).toBe(true);
+      expect(level(10, 5).isBelow(minimum)).toBe(false);
+    });
+
+    it.each([
+      {
+        when: 'crosses it',
+        previous: level(10, 5),
+        next: level(10, 6),
+        fell: true,
+      },
+      {
+        when: 'was already below it',
+        previous: level(10, 6),
+        next: level(10, 7),
+        fell: false,
+      },
+      {
+        when: 'stays at it',
+        previous: level(10, 4),
+        next: level(10, 5),
+        fell: false,
+      },
+      {
+        when: 'goes back above it',
+        previous: level(10, 6),
+        next: level(20, 6),
+        fell: false,
+      },
+    ])(
+      'should report a fall below the minimum only when the level $when',
+      ({ previous, next, fell }) => {
+        expect(next.fellBelow(minimum, previous)).toBe(fell);
+      },
+    );
   });
 });
