@@ -11,3 +11,10 @@
 - [ ] Tests written before the implementation (TDD), when applicable
 - [ ] `npm run lint` and `npm test` pass locally
 - [ ] PR title follows Conventional Commits (e.g. `feat(orders): add order aggregate`)
+
+## Design (ADR 0010)
+
+- [ ] Values with business rules are value objects, not primitives
+- [ ] Collections with rules are wrapped in their own class
+- [ ] Objects are told what to do; no getters used to make decisions elsewhere
+- [ ] Domain classes keep at most two instance variables, or the PR explains why
