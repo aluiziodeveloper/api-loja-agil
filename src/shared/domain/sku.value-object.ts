@@ -1,4 +1,4 @@
-import { ValueObject } from '../../shared/domain/value-object.js';
+import { ValueObject } from './value-object.js';
 import { InvalidSkuError } from './invalid-sku.error.js';
 
 /** Código base de 3 a 12 letras ou dígitos, com variação opcional: ABC123-AZUL. */

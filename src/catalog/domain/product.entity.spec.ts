@@ -1,7 +1,7 @@
 import { Money } from '../../shared/domain/money.value-object.js';
 import { ProductName } from './product-name.value-object.js';
 import { Product, type ProductSnapshot } from './product.entity.js';
-import { Sku } from './sku.value-object.js';
+import { Sku } from '../../shared/domain/sku.value-object.js';
 
 function createShirt(): Product {
   return Product.create({

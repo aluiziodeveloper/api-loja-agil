@@ -1,4 +1,4 @@
-import { DomainError } from '../../shared/domain/domain-error.js';
+import { DomainError } from './domain-error.js';
 
 export class InvalidSkuError extends DomainError {
   readonly code = 'INVALID_SKU';
