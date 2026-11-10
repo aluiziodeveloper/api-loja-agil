@@ -1,4 +1,5 @@
 import type { Money } from '../../../shared/domain/money.value-object.js';
+import type { DiscountSnapshot } from './coupon.snapshot.js';
 import type { DiscountPolicy } from './discount-policy.js';
 import { InvalidDiscountError } from './invalid-discount.error.js';
 
@@ -20,5 +21,13 @@ export class PercentageDiscount implements DiscountPolicy {
 
   discountFor(subtotal: Money): Money {
     return subtotal.percentage(this.percent).min(this.cap);
+  }
+
+  toSnapshot(): DiscountSnapshot {
+    return {
+      type: 'PERCENTAGE',
+      percent: this.percent,
+      capInCents: this.cap.toCents(),
+    };
   }
 }
