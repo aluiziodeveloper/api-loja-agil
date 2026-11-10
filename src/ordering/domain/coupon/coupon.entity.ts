@@ -39,6 +39,10 @@ export class Coupon extends AggregateRoot {
     });
   }
 
+  code(): CouponCode {
+    return this.props.code;
+  }
+
   isApplicableTo(subtotal: Money, at: Date): boolean {
     return this.eligibility().isSatisfiedBy({ subtotal, at });
   }

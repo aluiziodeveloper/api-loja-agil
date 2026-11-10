@@ -1,26 +1,26 @@
 import { AggregateRoot } from '../../shared/domain/aggregate-root.js';
-import type { Money } from '../../shared/domain/money.value-object.js';
 import type { Sku } from '../../shared/domain/sku.value-object.js';
 import { UniqueId } from '../../shared/domain/unique-id.value-object.js';
-import { EmptyOrderError } from './empty-order.error.js';
+import { Basket, type OrderPrices } from './basket.js';
+import type { Coupon } from './coupon/coupon.entity.js';
 import { OrderCancelled } from './events/order-cancelled.event.js';
 import { OrderPaid } from './events/order-paid.event.js';
 import { OrderPlaced } from './events/order-placed.event.js';
 import { OrderShipped } from './events/order-shipped.event.js';
 import { OrderNotEditableError } from './order-not-editable.error.js';
 import type { OrderItem } from './order-item.value-object.js';
-import { OrderItems } from './order-items.js';
-import type { OrderSnapshot } from './order.snapshot.js';
 import { ensureTransition } from './order-lifecycle.js';
+import type { OrderSnapshot } from './order.snapshot.js';
 import { OrderStatus } from './order-status.js';
 
 type OrderProps = {
   customerId: UniqueId;
   status: OrderStatus;
-  items: OrderItems;
+  basket: Basket;
   createdAt: Date;
 };
 
+/** O pedido cuida do ciclo de vida; a cesta, do que se compra e por quanto. */
 export class Order extends AggregateRoot {
   private constructor(
     id: UniqueId,
@@ -33,7 +33,7 @@ export class Order extends AggregateRoot {
     return new Order(UniqueId.create(), {
       customerId,
       status: OrderStatus.DRAFT,
-      items: OrderItems.empty(),
+      basket: Basket.empty(),
       createdAt: new Date(),
     });
   }
@@ -42,25 +42,31 @@ export class Order extends AggregateRoot {
     return new Order(UniqueId.from(snapshot.id), {
       customerId: UniqueId.from(snapshot.customerId),
       status: snapshot.status,
-      items: OrderItems.restore(snapshot.items),
+      basket: Basket.restore(snapshot),
       createdAt: snapshot.createdAt,
     });
   }
 
   addItem(item: OrderItem): void {
-    this.changeItems(this.editableItems().add(item));
+    this.changeBasket((basket) => basket.add(item));
   }
 
   removeItem(sku: Sku): void {
-    this.changeItems(this.editableItems().remove(sku));
+    this.changeBasket((basket) => basket.remove(sku));
+  }
+
+  applyCoupon(coupon: Coupon): void {
+    this.changeBasket((basket) => basket.withCoupon(coupon, new Date()));
+  }
+
+  removeCoupon(): void {
+    this.changeBasket((basket) => basket.withoutCoupon());
   }
 
   place(): void {
-    if (this.props.items.isEmpty()) {
-      throw new EmptyOrderError();
-    }
+    this.props.basket.ensureReadyToPlace(new Date());
     this.moveTo(OrderStatus.PLACED);
-    this.record(new OrderPlaced(this.toSnapshot(), this.subtotal()));
+    this.record(new OrderPlaced(this.toSnapshot(), this.prices().total));
   }
 
   pay(): void {
@@ -79,8 +85,8 @@ export class Order extends AggregateRoot {
     this.record(new OrderCancelled(beforeCancel));
   }
 
-  subtotal(): Money {
-    return this.props.items.subtotal();
+  prices(): OrderPrices {
+    return this.props.basket.prices(new Date());
   }
 
   toSnapshot(): OrderSnapshot {
@@ -88,17 +94,9 @@ export class Order extends AggregateRoot {
       id: this.id.toString(),
       customerId: this.props.customerId.toString(),
       status: this.props.status,
-      items: this.props.items.toSnapshot(),
+      ...this.props.basket.toSnapshot(),
       createdAt: this.props.createdAt,
     };
-  }
-
-  /** Itens só mudam no rascunho: depois de confirmado, o pedido é um compromisso. */
-  private editableItems(): OrderItems {
-    if (this.props.status !== OrderStatus.DRAFT) {
-      throw new OrderNotEditableError(this.props.status);
-    }
-    return this.props.items;
   }
 
   private moveTo(next: OrderStatus): void {
@@ -106,7 +104,11 @@ export class Order extends AggregateRoot {
     this.props = { ...this.props, status: next };
   }
 
-  private changeItems(items: OrderItems): void {
-    this.props = { ...this.props, items };
+  /** A cesta só muda no rascunho: depois de confirmado, o pedido é um compromisso. */
+  private changeBasket(change: (basket: Basket) => Basket): void {
+    if (this.props.status !== OrderStatus.DRAFT) {
+      throw new OrderNotEditableError(this.props.status);
+    }
+    this.props = { ...this.props, basket: change(this.props.basket) };
   }
 }
