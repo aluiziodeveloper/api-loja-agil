@@ -4,6 +4,10 @@ import type { SearchParamsInput } from '../../../shared/application/search/searc
 import { productSearchParams } from '../product-search.js';
 import { InMemoryProductRepository } from './in-memory-product.repository.js';
 
+/** Ids fixos, salvos fora de ordem: só o desempate por id põe a Almofada antes. */
+const LOWER_ID = '019a6b7e-0000-7000-8000-000000000001';
+const HIGHER_ID = '019a6b7e-0000-7000-8000-000000000002';
+
 function names(products: Product[]): string[] {
   return products.map((product) => product.toSnapshot().name);
 }
@@ -23,12 +27,14 @@ describe('InMemoryProductRepository.search', () => {
         .withName('Camiseta Azul')
         .withPriceInCents(4990),
       aProduct()
+        .withId(HIGHER_ID)
         .withSku('CAN001')
         .withName('Caneca Ágil')
         .withPriceInCents(3500),
       aProduct().withSku('ADE001').withName('Adesivo').withPriceInCents(500),
       aProduct().withSku('BON001').withName('Boné Azul').withPriceInCents(5990),
       aProduct()
+        .withId(LOWER_ID)
         .withSku('ALM001')
         .withName('Almofada')
         .withPriceInCents(3500)
@@ -70,11 +76,10 @@ describe('InMemoryProductRepository.search', () => {
       .toOutput()
       .items.map((item) => item.toSnapshot().priceInCents);
     expect(prices).toEqual([5990, 4990, 3500, 3500, 500]);
-    const tied = result
-      .toOutput()
-      .items.slice(2, 4)
-      .map((item) => item.id.toString());
-    expect(tied).toEqual([...tied].sort());
+    expect(names(result.toOutput().items.slice(2, 4))).toEqual([
+      'Almofada',
+      'Caneca Ágil',
+    ]);
   });
 
   it('should sort by SKU', async () => {
