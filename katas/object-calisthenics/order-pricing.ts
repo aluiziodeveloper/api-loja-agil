@@ -23,16 +23,12 @@ export type OrderInput = {
   couponCode?: string;
 };
 
-const FREE_SHIPPING_THRESHOLD = Money.ofCents(20000);
-const SHIPPING_FEE_SP = Money.ofCents(1000);
-const SHIPPING_FEE_OTHER_STATES = Money.ofCents(2500);
-
 export class OrderPricing {
   totalFor(order: OrderInput): number {
     const lines = this.toOrderLines(order.items);
     const customer = this.toCustomer(order.customer);
     const subtotal = this.applyCoupon(lines.subtotal(), order.couponCode);
-    return subtotal.add(this.shippingFee(customer, subtotal)).toCents();
+    return subtotal.add(customer.shippingFeeFor(subtotal)).toCents();
   }
 
   private toCustomer(input: CustomerInput): Customer {
@@ -53,12 +49,5 @@ export class OrderPricing {
       return amount;
     }
     return Coupon.from(couponCode).applyTo(amount);
-  }
-
-  private shippingFee(customer: Customer, subtotal: Money): Money {
-    if (customer.isVip() || subtotal.isAtLeast(FREE_SHIPPING_THRESHOLD)) {
-      return Money.zero();
-    }
-    return customer.livesIn('SP') ? SHIPPING_FEE_SP : SHIPPING_FEE_OTHER_STATES;
   }
 }

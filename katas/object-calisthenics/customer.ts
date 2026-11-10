@@ -1,4 +1,7 @@
 import type { Address } from './address.js';
+import { Money } from './money.js';
+
+const FREE_SHIPPING_THRESHOLD = Money.ofCents(20000);
 
 export class Customer {
   private constructor(
@@ -10,11 +13,10 @@ export class Customer {
     return new Customer(vip, address);
   }
 
-  isVip(): boolean {
-    return this.vip;
-  }
-
-  livesIn(state: string): boolean {
-    return this.address.isIn(state);
+  shippingFeeFor(subtotal: Money): Money {
+    if (this.vip || subtotal.isAtLeast(FREE_SHIPPING_THRESHOLD)) {
+      return Money.zero();
+    }
+    return this.address.standardShippingFee();
   }
 }
