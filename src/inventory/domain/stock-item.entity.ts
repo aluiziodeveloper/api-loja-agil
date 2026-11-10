@@ -1,8 +1,8 @@
 import { AggregateRoot } from '../../shared/domain/aggregate-root.js';
 import { Sku } from '../../shared/domain/sku.value-object.js';
 import { UniqueId } from '../../shared/domain/unique-id.value-object.js';
+import type { AdjustmentReason } from './adjustment-reason.value-object.js';
 import { EmptyStockMovementError } from './empty-stock-movement.error.js';
-import { MissingAdjustmentReasonError } from './missing-adjustment-reason.error.js';
 import { StockLevel } from './stock-level.value-object.js';
 import {
   stockMovement,
@@ -27,19 +27,8 @@ export type StockItemSnapshot = {
   minimumLevel: number;
 };
 
-function ensureNotEmpty(quantity: StockQuantity): void {
-  if (quantity.isZero()) {
-    throw new EmptyStockMovementError();
-  }
-}
-
-function parseReason(reason: string): string {
-  const trimmed = reason.trim();
-  if (!trimmed) {
-    throw new MissingAdjustmentReasonError();
-  }
-  return trimmed;
-}
+/** Operações do nível que movimentam uma quantidade positiva. */
+type LevelOperation = 'receive' | 'reserve' | 'release' | 'commit';
 
 export class StockItem extends AggregateRoot {
   private readonly movements: StockMovement[] = [];
@@ -61,29 +50,32 @@ export class StockItem extends AggregateRoot {
   static restore(snapshot: StockItemSnapshot): StockItem {
     return new StockItem(UniqueId.from(snapshot.id), {
       sku: Sku.create(snapshot.sku),
-      level: StockLevel.of(
-        StockQuantity.of(snapshot.onHand),
-        StockQuantity.of(snapshot.reserved),
-      ),
+      level: StockLevel.fromPrimitives(snapshot.onHand, snapshot.reserved),
       minimumLevel: StockQuantity.of(snapshot.minimumLevel),
     });
   }
 
   receive(quantity: StockQuantity): void {
-    ensureNotEmpty(quantity);
-    this.changeLevel(
-      StockMovementType.RECEIPT,
-      this.props.level.receive(quantity),
-    );
+    this.move(StockMovementType.RECEIPT, quantity, 'receive');
   }
 
-  adjust(counted: StockQuantity, reason: string): void {
-    const adjustmentReason = parseReason(reason);
+  reserve(quantity: StockQuantity): void {
+    this.move(StockMovementType.RESERVATION, quantity, 'reserve');
+  }
+
+  release(quantity: StockQuantity): void {
+    this.move(StockMovementType.RELEASE, quantity, 'release');
+  }
+
+  commit(quantity: StockQuantity): void {
+    this.move(StockMovementType.COMMIT, quantity, 'commit');
+  }
+
+  adjust(counted: StockQuantity, reason: AdjustmentReason): void {
     const next = this.props.level.countedAs(counted);
-    if (next.equals(this.props.level)) {
-      return;
+    if (!next.equals(this.props.level)) {
+      this.changeLevel(StockMovementType.ADJUSTMENT, next, reason.toString());
     }
-    this.changeLevel(StockMovementType.ADJUSTMENT, next, adjustmentReason);
   }
 
   available(): StockQuantity {
@@ -101,6 +93,18 @@ export class StockItem extends AggregateRoot {
       ...this.props.level.toPrimitives(),
       minimumLevel: this.props.minimumLevel.toNumber(),
     };
+  }
+
+  /** Entrada, reserva, liberação e baixa: quantidade positiva e um movimento. */
+  private move(
+    type: StockMovementType,
+    quantity: StockQuantity,
+    operation: LevelOperation,
+  ): void {
+    if (quantity.isZero()) {
+      throw new EmptyStockMovementError();
+    }
+    this.changeLevel(type, this.props.level[operation](quantity));
   }
 
   private changeLevel(
