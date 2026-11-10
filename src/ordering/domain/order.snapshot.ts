@@ -1,3 +1,4 @@
+import type { CouponSnapshot } from './coupon/coupon.snapshot.js';
 import type { OrderItemSnapshot } from './order-item.value-object.js';
 import type { OrderStatus } from './order-status.js';
 
@@ -7,6 +8,8 @@ export type OrderSnapshot = {
   customerId: string;
   status: OrderStatus;
   items: OrderItemSnapshot[];
+  /** Cópia do cupom no momento em que foi aplicado, como o preço dos itens. */
+  coupon: CouponSnapshot | null;
   createdAt: Date;
 };
 

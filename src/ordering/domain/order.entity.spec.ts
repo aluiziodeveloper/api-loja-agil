@@ -5,6 +5,8 @@ import { OrderCancelled } from './events/order-cancelled.event.js';
 import { OrderPaid } from './events/order-paid.event.js';
 import { OrderPlaced } from './events/order-placed.event.js';
 import { OrderShipped } from './events/order-shipped.event.js';
+import type { CouponSnapshot } from './coupon/coupon.snapshot.js';
+import { Coupon } from './coupon/coupon.entity.js';
 import { Order } from './order.entity.js';
 import { OrderItem } from './order-item.value-object.js';
 import type { OrderSnapshot } from './order.snapshot.js';
@@ -27,7 +29,17 @@ const storedDraft: OrderSnapshot = {
   customerId: CUSTOMER_ID,
   status: OrderStatus.DRAFT,
   items: [{ sku: 'CAN001', unitPriceInCents: 4990, quantity: 2 }],
+  coupon: null,
   createdAt: NOW,
+};
+
+/** 10% até R$ 20,00, para pedidos a partir de R$ 50,00. */
+const agil10: CouponSnapshot = {
+  id: '01890a5d-ac96-774b-bcce-b302099a8060',
+  code: 'AGIL10',
+  discount: { type: 'PERCENTAGE', percent: 10, capInCents: 2000 },
+  minimumOrderInCents: 5000,
+  expiresAt: new Date('2026-11-30T23:59:59.999Z'),
 };
 
 describe('Order', () => {
@@ -49,6 +61,7 @@ describe('Order', () => {
         customerId: CUSTOMER_ID,
         status: 'DRAFT',
         items: [],
+        coupon: null,
         createdAt: NOW,
       });
     });
@@ -67,7 +80,7 @@ describe('Order', () => {
       expect(order.toSnapshot().items).toEqual([
         { sku: 'CAN001', unitPriceInCents: 4990, quantity: 3 },
       ]);
-      expect(order.subtotal()).toEqual(Money.fromCents(14_970));
+      expect(order.prices().subtotal).toEqual(Money.fromCents(14_970));
     });
 
     it('should remove the item of a SKU', () => {
@@ -175,6 +188,113 @@ describe('Order', () => {
       );
       expect(order.toSnapshot().status).toBe('SHIPPED');
       expect(order.pullDomainEvents()).toEqual([]);
+    });
+  });
+
+  describe('coupon', () => {
+    function draftWithCoupon(): Order {
+      const order = Order.restore(storedDraft);
+      order.applyCoupon(Coupon.restore(agil10));
+      return order;
+    }
+
+    it('should discount the total and keep a copy of the coupon', () => {
+      const order = draftWithCoupon();
+
+      expect(order.prices()).toEqual({
+        subtotal: Money.fromCents(9980),
+        discount: Money.fromCents(998),
+        total: Money.fromCents(8982),
+      });
+      expect(order.toSnapshot().coupon).toEqual(agil10);
+    });
+
+    it('should be rebuilt with its coupon', () => {
+      const snapshot = { ...storedDraft, coupon: agil10 };
+
+      const order = Order.restore(snapshot);
+
+      expect(order.toSnapshot()).toEqual(snapshot);
+      expect(order.prices().discount).toEqual(Money.fromCents(998));
+    });
+
+    it('should have no discount without a coupon', () => {
+      const order = Order.restore(storedDraft);
+
+      expect(order.prices()).toEqual({
+        subtotal: Money.fromCents(9980),
+        discount: Money.zero(),
+        total: Money.fromCents(9980),
+      });
+    });
+
+    it('should accept a single coupon per order (RN14)', () => {
+      const order = draftWithCoupon();
+
+      expect(() =>
+        order.applyCoupon(Coupon.restore({ ...agil10, code: 'NATAL2026' })),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'COUPON_ALREADY_APPLIED',
+          message:
+            'O pedido já tem o cupom "AGIL10"; remova-o antes de aplicar outro.',
+        }),
+      );
+    });
+
+    it('should refuse a coupon the order is not eligible for', () => {
+      const order = Order.restore({
+        ...storedDraft,
+        items: [{ sku: 'CAN001', unitPriceInCents: 4990, quantity: 1 }],
+      });
+
+      expect(() => order.applyCoupon(Coupon.restore(agil10))).toThrow(
+        expect.objectContaining({ code: 'COUPON_NOT_APPLICABLE' }),
+      );
+      expect(order.toSnapshot().coupon).toBeNull();
+    });
+
+    it('should remove the coupon', () => {
+      const order = draftWithCoupon();
+
+      order.removeCoupon();
+
+      expect(order.toSnapshot().coupon).toBeNull();
+      expect(order.prices().discount).toEqual(Money.zero());
+    });
+
+    it('should stop discounting when the order falls below the minimum', () => {
+      const order = draftWithCoupon();
+
+      order.removeItem(Sku.create('CAN001'));
+      order.addItem(mugs(1));
+
+      expect(order.prices().discount).toEqual(Money.zero());
+      expect(() => order.place()).toThrow(
+        expect.objectContaining({ code: 'COUPON_NOT_APPLICABLE' }),
+      );
+    });
+
+    it('should place the order with the discounted total', () => {
+      const order = draftWithCoupon();
+
+      order.place();
+
+      expect(order.pullDomainEvents()[0]).toMatchObject({ totalInCents: 8982 });
+    });
+
+    it('should only change the coupon of a draft', () => {
+      const order = Order.restore({
+        ...storedDraft,
+        status: OrderStatus.PLACED,
+      });
+
+      expect(() => order.applyCoupon(Coupon.restore(agil10))).toThrow(
+        expect.objectContaining({ code: 'ORDER_NOT_EDITABLE' }),
+      );
+      expect(() => order.removeCoupon()).toThrow(
+        expect.objectContaining({ code: 'ORDER_NOT_EDITABLE' }),
+      );
     });
   });
 });
