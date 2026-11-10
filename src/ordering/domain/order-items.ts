@@ -9,12 +9,6 @@ import { TooManyOrderItemsError } from './too-many-order-items.error.js';
 
 const MAX_DISTINCT_ITEMS = 20;
 
-/** O que o Estoque precisa saber de um item: SKU e quantidade, sem preço. */
-export type ItemQuantity = {
-  sku: string;
-  quantity: number;
-};
-
 /** Coleção de primeira classe: as regras da lista de itens moram aqui (RN09). */
 export class OrderItems {
   private constructor(private readonly items: readonly OrderItem[]) {}
@@ -57,10 +51,6 @@ export class OrderItems {
 
   isEmpty(): boolean {
     return this.items.length === 0;
-  }
-
-  toQuantities(): ItemQuantity[] {
-    return this.toSnapshot().map(({ sku, quantity }) => ({ sku, quantity }));
   }
 
   toSnapshot(): OrderItemSnapshot[] {
