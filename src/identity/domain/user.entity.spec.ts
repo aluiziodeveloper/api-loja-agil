@@ -1,3 +1,4 @@
+import { aUser } from './__tests__/user.builder.js';
 import { InvalidEmailError } from './invalid-email.error.js';
 import { Email } from './email.value-object.js';
 import { Name } from './name.value-object.js';
@@ -78,7 +79,7 @@ describe('User', () => {
 
   describe('profile changes', () => {
     it('should rename the user', () => {
-      const user = registerAna();
+      const user = aUser().build();
 
       user.rename(Name.create('Ana Souza'));
 
@@ -86,7 +87,7 @@ describe('User', () => {
     });
 
     it('should change the email', () => {
-      const user = registerAna();
+      const user = aUser().build();
 
       user.changeEmail(Email.create('ana.souza@lojaagil.com'));
 
@@ -95,7 +96,7 @@ describe('User', () => {
     });
 
     it('should change the password hash', () => {
-      const user = registerAna();
+      const user = aUser().build();
 
       user.changePassword(PasswordHash.fromHash('hashed:nova2026'));
 
@@ -105,7 +106,7 @@ describe('User', () => {
 
   describe('authenticate', () => {
     it('should accept the password that matches the stored hash', async () => {
-      const user = registerAna();
+      const user = aUser().withPasswordHash('hashed:agil2026').build();
 
       const authenticated = await user.authenticate(
         Password.create('agil2026'),
@@ -116,7 +117,7 @@ describe('User', () => {
     });
 
     it('should refuse a different password', async () => {
-      const user = registerAna();
+      const user = aUser().withPasswordHash('hashed:agil2026').build();
 
       const authenticated = await user.authenticate(
         Password.create('errada123'),
