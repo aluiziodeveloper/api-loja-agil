@@ -29,6 +29,10 @@ export class OrderItem extends ValueObject<OrderItemProps> {
     });
   }
 
+  sku(): Sku {
+    return this.props.sku;
+  }
+
   subtotal(): Money {
     return this.props.unitPrice.multiply(this.props.quantity.toNumber());
   }
