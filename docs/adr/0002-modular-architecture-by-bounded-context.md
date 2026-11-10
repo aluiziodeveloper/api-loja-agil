@@ -14,5 +14,5 @@ Vamos organizar `src/` por bounded context (`identity`, `catalog`, `inventory`, 
 ## Consequências
 
 - Cada contexto pode evoluir (ou ser extraído) com pouco impacto nos demais.
-- As regras de dependência são verificadas automaticamente pelo dependency-cruiser no CI (aula 02-05).
+- As regras de dependência são verificadas automaticamente pelo dependency-cruiser no CI (aula 02-07).
 - Há mais pastas e alguns mapeamentos explícitos entre contextos, um custo aceito em troca do isolamento.
