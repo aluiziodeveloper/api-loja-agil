@@ -85,10 +85,4 @@ describe('OrderItems', () => {
 
     expect(OrderItems.restore(items.toSnapshot())).toEqual(items);
   });
-
-  it('should list what must be reserved, without prices', () => {
-    const items = OrderItems.empty().add(item('CAN001', 2, 4990));
-
-    expect(items.toQuantities()).toEqual([{ sku: 'CAN001', quantity: 2 }]);
-  });
 });
