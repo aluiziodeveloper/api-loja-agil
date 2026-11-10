@@ -12,6 +12,10 @@ export class ProductBuilder {
     active: true,
   };
 
+  withId(id: string): this {
+    return this.with({ id });
+  }
+
   withSku(sku: string): this {
     return this.with({ sku });
   }
