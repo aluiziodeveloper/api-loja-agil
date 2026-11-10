@@ -5,13 +5,13 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['src/**/*.spec.ts'],
+    include: ['src/**/*.spec.ts', 'katas/**/*.spec.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.ts', 'katas/**/*.ts'],
       exclude: [
         'src/**/__tests__/**',
-        'src/**/*.spec.ts',
+        '**/*.spec.ts',
         'src/**/*.module.ts',
         'src/main.ts',
       ],
