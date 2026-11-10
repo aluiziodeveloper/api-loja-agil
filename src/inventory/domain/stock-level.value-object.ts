@@ -1,4 +1,6 @@
 import { ValueObject } from '../../shared/domain/value-object.js';
+import { InsufficientStockError } from './insufficient-stock.error.js';
+import { ReservedStockExceededError } from './reserved-stock-exceeded.error.js';
 import { StockBelowReservedError } from './stock-below-reserved.error.js';
 import { StockQuantity } from './stock-quantity.value-object.js';
 
@@ -21,6 +23,10 @@ export class StockLevel extends ValueObject<StockLevelProps> {
     return new StockLevel({ onHand, reserved });
   }
 
+  static fromPrimitives(onHand: number, reserved: number): StockLevel {
+    return StockLevel.of(StockQuantity.of(onHand), StockQuantity.of(reserved));
+  }
+
   static empty(): StockLevel {
     return StockLevel.of(StockQuantity.zero(), StockQuantity.zero());
   }
@@ -31,6 +37,26 @@ export class StockLevel extends ValueObject<StockLevelProps> {
 
   countedAs(counted: StockQuantity): StockLevel {
     return StockLevel.of(counted, this.props.reserved);
+  }
+
+  reserve(quantity: StockQuantity): StockLevel {
+    const available = this.available();
+    if (available.isLessThan(quantity)) {
+      throw new InsufficientStockError(
+        quantity.toNumber(),
+        available.toNumber(),
+      );
+    }
+    return StockLevel.of(this.props.onHand, this.props.reserved.add(quantity));
+  }
+
+  release(quantity: StockQuantity): StockLevel {
+    return StockLevel.of(this.props.onHand, this.takeReserved(quantity));
+  }
+
+  commit(quantity: StockQuantity): StockLevel {
+    const reserved = this.takeReserved(quantity);
+    return StockLevel.of(this.props.onHand.subtract(quantity), reserved);
   }
 
   available(): StockQuantity {
@@ -51,5 +77,16 @@ export class StockLevel extends ValueObject<StockLevelProps> {
       onHand: this.props.onHand.toNumber(),
       reserved: this.props.reserved.toNumber(),
     };
+  }
+
+  private takeReserved(quantity: StockQuantity): StockQuantity {
+    const { reserved } = this.props;
+    if (reserved.isLessThan(quantity)) {
+      throw new ReservedStockExceededError(
+        quantity.toNumber(),
+        reserved.toNumber(),
+      );
+    }
+    return reserved.subtract(quantity);
   }
 }

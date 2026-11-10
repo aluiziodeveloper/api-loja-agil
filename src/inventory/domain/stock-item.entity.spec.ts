@@ -1,9 +1,11 @@
 import { Sku } from '../../shared/domain/sku.value-object.js';
+import { AdjustmentReason } from './adjustment-reason.value-object.js';
 import { StockItem, type StockItemSnapshot } from './stock-item.entity.js';
 import { StockMovementType } from './stock-movement.js';
 import { StockQuantity } from './stock-quantity.value-object.js';
 
 const NOW = new Date('2026-11-10T12:00:00.000Z');
+const MONTHLY_COUNT = AdjustmentReason.create('Contagem mensal');
 
 function newMugStock(): StockItem {
   return StockItem.create({
@@ -99,7 +101,7 @@ describe('StockItem', () => {
     it('should set the counted units and record the difference', () => {
       const stock = StockItem.restore(storedMugStock);
 
-      stock.adjust(StockQuantity.of(17), 'Contagem mensal');
+      stock.adjust(StockQuantity.of(17), MONTHLY_COUNT);
 
       expect(stock.toSnapshot().onHand).toBe(17);
       expect(stock.pullMovements()).toEqual([
@@ -116,7 +118,7 @@ describe('StockItem', () => {
     it('should record nothing when the count matches', () => {
       const stock = StockItem.restore(storedMugStock);
 
-      stock.adjust(StockQuantity.of(20), 'Contagem mensal');
+      stock.adjust(StockQuantity.of(20), MONTHLY_COUNT);
 
       expect(stock.pullMovements()).toEqual([]);
     });
@@ -124,7 +126,7 @@ describe('StockItem', () => {
     it('should refuse a count below the reserved units', () => {
       const stock = StockItem.restore(storedMugStock);
 
-      expect(() => stock.adjust(StockQuantity.of(7), 'Avaria')).toThrow(
+      expect(() => stock.adjust(StockQuantity.of(7), MONTHLY_COUNT)).toThrow(
         expect.objectContaining({
           code: 'STOCK_BELOW_RESERVED',
           message:
@@ -134,14 +136,53 @@ describe('StockItem', () => {
       expect(stock.toSnapshot().onHand).toBe(20);
     });
 
-    it.each(['', '   '])('should require a reason (%#)', (reason) => {
+    it('should release units and record the release', () => {
       const stock = StockItem.restore(storedMugStock);
 
-      expect(() => stock.adjust(StockQuantity.of(17), reason)).toThrow(
+      stock.release(StockQuantity.of(8));
+
+      expect(stock.toSnapshot()).toMatchObject({ onHand: 20, reserved: 0 });
+      expect(stock.pullMovements()).toEqual([
         expect.objectContaining({
-          code: 'MISSING_ADJUSTMENT_REASON',
-          message: 'Informe o motivo do ajuste de estoque.',
+          type: StockMovementType.RELEASE,
+          onHandChange: 0,
+          reservedChange: -8,
         }),
+      ]);
+    });
+
+    it('should commit reserved units and record the commit', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      stock.commit(StockQuantity.of(8));
+
+      expect(stock.toSnapshot()).toMatchObject({ onHand: 12, reserved: 0 });
+      expect(stock.pullMovements()).toEqual([
+        expect.objectContaining({
+          type: StockMovementType.COMMIT,
+          onHandChange: -8,
+          reservedChange: -8,
+        }),
+      ]);
+    });
+
+    it('should leave the item untouched when a reservation is refused', () => {
+      const stock = StockItem.restore(storedMugStock);
+
+      expect(() => stock.reserve(StockQuantity.of(13))).toThrow(
+        expect.objectContaining({ code: 'INSUFFICIENT_STOCK' }),
+      );
+      expect(stock.toSnapshot()).toEqual(storedMugStock);
+      expect(stock.pullMovements()).toEqual([]);
+    });
+
+    it.each([
+      ['reserve', (stock: StockItem) => stock.reserve(StockQuantity.zero())],
+      ['release', (stock: StockItem) => stock.release(StockQuantity.zero())],
+      ['commit', (stock: StockItem) => stock.commit(StockQuantity.zero())],
+    ])('should refuse to %s zero units', (_operation, act) => {
+      expect(() => act(StockItem.restore(storedMugStock))).toThrow(
+        expect.objectContaining({ code: 'EMPTY_STOCK_MOVEMENT' }),
       );
     });
   });
