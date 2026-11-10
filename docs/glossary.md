@@ -40,14 +40,23 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Estoque (`inventory`)
 
-| Termo do negócio | Código                   | Definição                                                      |
-| ---------------- | ------------------------ | -------------------------------------------------------------- |
-| Item de estoque  | `StockItem`              | Saldo de um SKU no depósito                                    |
-| Estoque físico   | `onHand`                 | Quantidade que existe no depósito                              |
-| Reserva          | `reserve()` / `reserved` | Quantidade separada para pedidos confirmados e ainda não pagos |
-| Disponível       | `available()`            | `onHand − reserved`; o que ainda pode ser vendido              |
-| Baixa            | `commit()`               | Saída definitiva do estoque quando o pedido é pago             |
-| Estoque mínimo   | `minimumLevel`           | Abaixo dele a loja é alertada (`LowStockDetected`)             |
+| Termo do negócio        | Código                                       | Definição                                                                  |
+| ----------------------- | -------------------------------------------- | -------------------------------------------------------------------------- |
+| Item de estoque         | `StockItem`                                  | Saldo de um SKU no depósito; um por SKU                                    |
+| Quantidade de estoque   | `StockQuantity`                              | Unidades inteiras, nunca negativas                                         |
+| Nível de estoque        | `StockLevel`                                 | Físico e reservado; garante que o reservado nunca passa do físico (RN07)   |
+| Estoque físico          | `onHand`                                     | Quantidade que existe no depósito                                          |
+| Reserva                 | `reserve()` / `reserved`                     | Quantidade separada para pedidos confirmados e ainda não pagos             |
+| Liberação               | `release()`                                  | Devolve ao disponível uma quantidade reservada (pedido cancelado)          |
+| Disponível              | `available()`                                | `onHand − reserved`; o que ainda pode ser vendido                          |
+| Baixa                   | `commit()`                                   | Saída definitiva do estoque quando o pedido é pago                         |
+| Entrada                 | `receive()` / `ReceiveStockUseCase`          | Chegada de mercadoria; a primeira entrada de um SKU cria o item            |
+| Ajuste de inventário    | `adjust()` / `AdjustStockUseCase`            | Substitui o físico pela contagem; exige motivo (`AdjustmentReason`)        |
+| Movimentação            | `StockMovement`                              | Registro imutável de cada mudança: tipo, variações, motivo e horário       |
+| Estoque mínimo          | `minimumLevel` / `ChangeMinimumLevelUseCase` | Abaixo dele a loja é alertada                                              |
+| Alerta de estoque baixo | `LowStockDetected`                           | Evento registrado quando uma movimentação faz o disponível cruzar o mínimo |
+| Consultar estoque       | `GetStockLevelUseCase`                       | Físico, reservado, disponível, mínimo e se está abaixo dele                |
+| Histórico               | `ListStockMovementsUseCase`                  | Movimentações de um SKU, paginadas, em ordem cronológica                   |
 
 ## Pedidos (`ordering`)
 
