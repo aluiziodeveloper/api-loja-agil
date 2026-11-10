@@ -1,5 +1,5 @@
 import { aProduct } from '../../domain/__tests__/product.builder.js';
-import { Sku } from '../../domain/sku.value-object.js';
+import { Sku } from '../../../shared/domain/sku.value-object.js';
 import { InMemoryProductRepository } from '../__tests__/in-memory-product.repository.js';
 import { SkuAlreadyInUseError } from '../errors/sku-already-in-use.error.js';
 import { CreateProductUseCase } from './create-product.use-case.js';

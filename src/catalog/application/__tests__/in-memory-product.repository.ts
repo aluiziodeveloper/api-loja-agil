@@ -2,7 +2,7 @@ import { SortDirection } from '../../../shared/application/search/search-params.
 import { SearchResult } from '../../../shared/application/search/search-result.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
 import { Product, type ProductSnapshot } from '../../domain/product.entity.js';
-import type { Sku } from '../../domain/sku.value-object.js';
+import type { Sku } from '../../../shared/domain/sku.value-object.js';
 import type { ProductRepository } from '../ports/product.repository.js';
 import type {
   ProductSearchCriteria,

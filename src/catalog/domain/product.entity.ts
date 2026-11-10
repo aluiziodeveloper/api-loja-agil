@@ -2,7 +2,7 @@ import { AggregateRoot } from '../../shared/domain/aggregate-root.js';
 import { Money } from '../../shared/domain/money.value-object.js';
 import { UniqueId } from '../../shared/domain/unique-id.value-object.js';
 import { ProductName } from './product-name.value-object.js';
-import { Sku } from './sku.value-object.js';
+import { Sku } from '../../shared/domain/sku.value-object.js';
 
 type ProductProps = {
   sku: Sku;

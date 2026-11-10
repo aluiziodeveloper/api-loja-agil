@@ -1,6 +1,6 @@
 import { aProduct } from '../../domain/__tests__/product.builder.js';
 import { ProductName } from '../../domain/product-name.value-object.js';
-import { Sku } from '../../domain/sku.value-object.js';
+import { Sku } from '../../../shared/domain/sku.value-object.js';
 import { InMemoryProductRepository } from './in-memory-product.repository.js';
 
 describe('InMemoryProductRepository', () => {

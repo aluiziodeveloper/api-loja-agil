@@ -2,7 +2,7 @@ import type { UseCase } from '../../../shared/application/use-case.js';
 import { Money } from '../../../shared/domain/money.value-object.js';
 import { ProductName } from '../../domain/product-name.value-object.js';
 import { Product } from '../../domain/product.entity.js';
-import { Sku } from '../../domain/sku.value-object.js';
+import { Sku } from '../../../shared/domain/sku.value-object.js';
 import { SkuAlreadyInUseError } from '../errors/sku-already-in-use.error.js';
 import type { ProductRepository } from '../ports/product.repository.js';
 import { toProductOutput, type ProductOutput } from '../product-output.js';

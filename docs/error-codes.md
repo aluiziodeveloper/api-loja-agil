@@ -10,6 +10,7 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 | `INVALID_ID`            | `InvalidIdError`           | Identificador fora do formato UUID                       | 400  |
 | `INVALID_MONEY`         | `InvalidMoneyError`        | Valor negativo ou fora de centavos inteiros              | 400  |
 | `INVALID_SEARCH_PARAMS` | `InvalidSearchParamsError` | Página, itens por página, ordenação ou direção inválidos | 400  |
+| `INVALID_SKU`           | `InvalidSkuError`          | SKU fora do formato `ABC123[-VAR]`                       | 400  |
 
 ## Identidade & Acesso
 
@@ -29,7 +30,6 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 
 | Código                 | Classe                    | Quando acontece                            | HTTP |
 | ---------------------- | ------------------------- | ------------------------------------------ | ---- |
-| `INVALID_SKU`          | `InvalidSkuError`         | SKU fora do formato `ABC123[-VAR]`         | 400  |
 | `INVALID_PRODUCT_NAME` | `InvalidProductNameError` | Nome de produto fora de 2 a 120 caracteres | 400  |
 | `SKU_ALREADY_IN_USE`   | `SkuAlreadyInUseError`    | Cadastro de produto com um SKU já usado    | 409  |
 | `PRODUCT_NOT_FOUND`    | `ProductNotFoundError`    | Produto inexistente                        | 404  |

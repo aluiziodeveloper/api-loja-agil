@@ -26,7 +26,7 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 | Termo do negócio      | Código                                                | Definição                                                           |
 | --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
 | Produto               | `Product`                                             | Item vendável do catálogo; o SKU não muda depois de criado          |
-| SKU                   | `Sku`                                                 | Código único do produto, `ABC123[-VAR]` (ex.: `CAM123-AZUL`)        |
+| SKU                   | `Sku` (Shared Kernel)                                 | Código único do produto, `ABC123[-VAR]` (ex.: `CAM123-AZUL`)        |
 | Nome do produto       | `ProductName`                                         | Nome de exibição, de 2 a 120 caracteres                             |
 | Preço                 | `Money` (Shared Kernel)                               | Valor em centavos de real; inteiro e nunca negativo                 |
 | Produto ativo/inativo | `Product.activate()` / `Product.deactivate()`         | Só produtos ativos aparecem para clientes e podem ser pedidos       |
