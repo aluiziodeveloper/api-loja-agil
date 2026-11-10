@@ -1,0 +1,12 @@
+# Imagem de desenvolvimento: só o necessário para rodar Node, Git e o Prisma.
+FROM node:26-alpine
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+# O usuário "node" (uid 1000) já existe na imagem oficial.
+USER node
+
+EXPOSE 3000
+CMD ["npm", "run", "start:dev"]
