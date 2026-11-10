@@ -1,5 +1,6 @@
 import { SortDirection } from '../../../shared/application/search/search-params.js';
-import { SearchResult } from '../../../shared/application/search/search-result.js';
+import type { SearchResult } from '../../../shared/application/search/search-result.js';
+import { paginate } from '../../../shared/application/__tests__/paginate.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
 import { Product, type ProductSnapshot } from '../../domain/product.entity.js';
 import type { Sku } from '../../../shared/domain/sku.value-object.js';
@@ -77,13 +78,9 @@ export class InMemoryProductRepository implements ProductRepository {
     const matching = [...this.snapshots.values()]
       .filter((snapshot) => matches(snapshot, criteria))
       .sort(compareBy(params));
-    const start = params.offset();
-    const page = matching.slice(start, start + params.perPage());
-    return SearchResult.create({
-      items: page.map((snapshot) => Product.restore(snapshot)),
-      total: matching.length,
-      params,
-    });
+    return paginate(matching, params).map((snapshot) =>
+      Product.restore(snapshot),
+    );
   }
 
   private restore(snapshot?: ProductSnapshot): Product | null {
