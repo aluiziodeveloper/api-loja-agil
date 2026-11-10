@@ -1,4 +1,6 @@
+import { Address } from './address.js';
 import { Coupon } from './coupon.js';
+import { Customer } from './customer.js';
 import { Money } from './money.js';
 import { OrderLine } from './order-line.js';
 import { OrderLines } from './order-lines.js';
@@ -15,8 +17,13 @@ const SHIPPING_FEE_OTHER_STATES = Money.ofCents(2500);
 export class OrderPriceCalc {
   calc(o: Ord): number {
     const lines = this.toOrderLines(o.itms);
+    const customer = this.toCustomer(o.cust);
     const subtotal = this.applyCoupon(lines.subtotal(), o.cpn);
-    return subtotal.add(this.shippingFee(o.cust, subtotal)).toCents();
+    return subtotal.add(this.shippingFee(customer, subtotal)).toCents();
+  }
+
+  private toCustomer(cust: Cust): Customer {
+    return Customer.of(cust.vip, Address.inState(cust.addr.state));
   }
 
   private toOrderLines(itms: Itm[]): OrderLines {
@@ -34,12 +41,10 @@ export class OrderPriceCalc {
     return Coupon.from(cpn).applyTo(tot);
   }
 
-  private shippingFee(cust: Cust, subtotal: Money): Money {
-    if (cust.vip || subtotal.isAtLeast(FREE_SHIPPING_THRESHOLD)) {
+  private shippingFee(customer: Customer, subtotal: Money): Money {
+    if (customer.isVip() || subtotal.isAtLeast(FREE_SHIPPING_THRESHOLD)) {
       return Money.zero();
     }
-    return cust.addr.state === 'SP'
-      ? SHIPPING_FEE_SP
-      : SHIPPING_FEE_OTHER_STATES;
+    return customer.livesIn('SP') ? SHIPPING_FEE_SP : SHIPPING_FEE_OTHER_STATES;
   }
 }
