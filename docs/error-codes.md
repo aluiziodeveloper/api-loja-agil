@@ -5,9 +5,11 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 
 ## Shared Kernel
 
-| Código       | Classe           | Quando acontece                    | HTTP |
-| ------------ | ---------------- | ---------------------------------- | ---- |
-| `INVALID_ID` | `InvalidIdError` | Identificador fora do formato UUID | 400  |
+| Código                  | Classe                     | Quando acontece                                          | HTTP |
+| ----------------------- | -------------------------- | -------------------------------------------------------- | ---- |
+| `INVALID_ID`            | `InvalidIdError`           | Identificador fora do formato UUID                       | 400  |
+| `INVALID_MONEY`         | `InvalidMoneyError`        | Valor negativo ou fora de centavos inteiros              | 400  |
+| `INVALID_SEARCH_PARAMS` | `InvalidSearchParamsError` | Página, itens por página, ordenação ou direção inválidos | 400  |
 
 ## Identidade & Acesso
 
@@ -22,5 +24,14 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 | `INVALID_CREDENTIALS`        | `InvalidCredentialsError`       | Login com e-mail ou senha errados (resposta única)   | 401  |
 | `USER_NOT_FOUND`             | `UserNotFoundError`             | Usuário inexistente                                  | 404  |
 | `INCORRECT_CURRENT_PASSWORD` | `IncorrectCurrentPasswordError` | Troca de senha com a senha atual errada              | 422  |
+
+## Catálogo
+
+| Código                 | Classe                    | Quando acontece                            | HTTP |
+| ---------------------- | ------------------------- | ------------------------------------------ | ---- |
+| `INVALID_SKU`          | `InvalidSkuError`         | SKU fora do formato `ABC123[-VAR]`         | 400  |
+| `INVALID_PRODUCT_NAME` | `InvalidProductNameError` | Nome de produto fora de 2 a 120 caracteres | 400  |
+| `SKU_ALREADY_IN_USE`   | `SkuAlreadyInUseError`    | Cadastro de produto com um SKU já usado    | 409  |
+| `PRODUCT_NOT_FOUND`    | `ProductNotFoundError`    | Produto inexistente                        | 404  |
 
 Ao criar um erro de domínio, acrescente uma linha aqui no mesmo pull request.
