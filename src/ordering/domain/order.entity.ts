@@ -85,6 +85,11 @@ export class Order extends AggregateRoot {
     this.record(new OrderCancelled(beforeCancel));
   }
 
+  /** RN15: o pedido é do cliente que o criou. */
+  belongsTo(customerId: UniqueId): boolean {
+    return this.props.customerId.equals(customerId);
+  }
+
   prices(): OrderPrices {
     return this.props.basket.prices(new Date());
   }

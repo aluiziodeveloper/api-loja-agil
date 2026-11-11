@@ -71,6 +71,20 @@ describe('Order', () => {
     });
   });
 
+  describe('belongsTo', () => {
+    it('should belong to the customer who drafted it', () => {
+      const order = Order.draft(UniqueId.from(CUSTOMER_ID));
+
+      expect(order.belongsTo(UniqueId.from(CUSTOMER_ID))).toBe(true);
+    });
+
+    it('should not belong to anybody else', () => {
+      const order = Order.draft(UniqueId.from(CUSTOMER_ID));
+
+      expect(order.belongsTo(UniqueId.create())).toBe(false);
+    });
+  });
+
   describe('items', () => {
     it('should add items and compute the subtotal', () => {
       const order = Order.restore(storedDraft);

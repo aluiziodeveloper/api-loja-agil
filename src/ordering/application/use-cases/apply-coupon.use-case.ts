@@ -8,6 +8,7 @@ import type { OrderRepository } from '../ports/order.repository.js';
 
 export type ApplyCouponInput = {
   orderId: string;
+  customerId: string;
   code: string;
 };
 
@@ -26,7 +27,7 @@ export class ApplyCouponUseCase implements UseCase<
     if (!coupon) {
       throw new CouponNotFoundError(code.toString());
     }
-    return changeOrder(this.orders, input.orderId, (order) =>
+    return changeOrder(this.orders, input, (order) =>
       order.applyCoupon(coupon),
     );
   }

@@ -54,9 +54,15 @@ describe('order fulfillment', () => {
     const draft = await new CreateDraftOrderUseCase(orders).execute({
       customerId: CUSTOMER_ID,
     });
-    await addItem.execute({ orderId: draft.id, sku: 'CAN001', quantity: mugs });
     await addItem.execute({
       orderId: draft.id,
+      customerId: CUSTOMER_ID,
+      sku: 'CAN001',
+      quantity: mugs,
+    });
+    await addItem.execute({
+      orderId: draft.id,
+      customerId: CUSTOMER_ID,
       sku: 'CAM001',
       quantity: shirts,
     });
@@ -73,11 +79,17 @@ describe('order fulfillment', () => {
   it('should reserve the stock when the order is placed and write it off when paid', async () => {
     const orderId = await draftWith(3, 1);
 
-    await new PlaceOrderUseCase(deps).execute({ orderId });
+    await new PlaceOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
     expect(await stockOf('CAN001')).toEqual({ onHand: 10, reserved: 3 });
     expect(await stockOf('CAM001')).toEqual({ onHand: 1, reserved: 1 });
 
-    await new PayOrderUseCase(deps).execute({ orderId });
+    await new PayOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
     expect(await stockOf('CAN001')).toEqual({ onHand: 7, reserved: 0 });
     expect(await stockOf('CAM001')).toEqual({ onHand: 0, reserved: 0 });
   });
@@ -86,22 +98,31 @@ describe('order fulfillment', () => {
     const orderId = await draftWith(3, 2);
 
     await expect(
-      new PlaceOrderUseCase(deps).execute({ orderId }),
+      new PlaceOrderUseCase(deps).execute({ orderId, customerId: CUSTOMER_ID }),
     ).rejects.toMatchObject({
       code: 'STOCK_SHORTAGE',
       message: 'Estoque insuficiente: CAM001 (solicitado 2, disponível 1).',
     });
 
-    const order = await new GetOrderUseCase(orders).execute({ orderId });
+    const order = await new GetOrderUseCase(orders).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
     expect(order.status).toBe('DRAFT');
     expect(await stockOf('CAN001')).toEqual({ onHand: 10, reserved: 0 });
   });
 
   it('should release the reservation when a placed order is cancelled (RN13)', async () => {
     const orderId = await draftWith(3, 1);
-    await new PlaceOrderUseCase(deps).execute({ orderId });
+    await new PlaceOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
 
-    await new CancelOrderUseCase(deps).execute({ orderId });
+    await new CancelOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
 
     expect(await stockOf('CAN001')).toEqual({ onHand: 10, reserved: 0 });
     expect(await stockOf('CAM001')).toEqual({ onHand: 1, reserved: 0 });
@@ -109,10 +130,19 @@ describe('order fulfillment', () => {
 
   it('should put the units back when a paid order is cancelled (RN13)', async () => {
     const orderId = await draftWith(3, 1);
-    await new PlaceOrderUseCase(deps).execute({ orderId });
-    await new PayOrderUseCase(deps).execute({ orderId });
+    await new PlaceOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
+    await new PayOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
 
-    await new CancelOrderUseCase(deps).execute({ orderId });
+    await new CancelOrderUseCase(deps).execute({
+      orderId,
+      customerId: CUSTOMER_ID,
+    });
 
     expect(await stockOf('CAN001')).toEqual({ onHand: 10, reserved: 0 });
     expect(await stockOf('CAM001')).toEqual({ onHand: 1, reserved: 0 });

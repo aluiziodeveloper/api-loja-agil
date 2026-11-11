@@ -6,6 +6,7 @@ import { ApplyCouponUseCase } from './apply-coupon.use-case.js';
 import { RemoveCouponUseCase } from './remove-coupon.use-case.js';
 
 const ORDER_ID = '01890a5d-ac96-774b-bcce-b302099a8058';
+const ANA = '01890a5d-ac96-774b-bcce-b302099a8057';
 
 describe('ApplyCouponUseCase and RemoveCouponUseCase', () => {
   let orders: InMemoryOrderRepository;
@@ -20,6 +21,7 @@ describe('ApplyCouponUseCase and RemoveCouponUseCase', () => {
     await orders.save(
       anOrder()
         .withId(ORDER_ID)
+        .withCustomerId(ANA)
         .withItems({ sku: 'CAN001', unitPriceInCents: 4990, quantity: 2 })
         .build(),
     );
@@ -30,6 +32,7 @@ describe('ApplyCouponUseCase and RemoveCouponUseCase', () => {
 
     const output = await applyCoupon.execute({
       orderId: ORDER_ID,
+      customerId: ANA,
       code: 'agil10',
     });
 
@@ -45,7 +48,7 @@ describe('ApplyCouponUseCase and RemoveCouponUseCase', () => {
     const applyCoupon = new ApplyCouponUseCase(orders, coupons);
 
     await expect(
-      applyCoupon.execute({ orderId: ORDER_ID, code: 'NADA' }),
+      applyCoupon.execute({ orderId: ORDER_ID, customerId: ANA, code: 'NADA' }),
     ).rejects.toThrow(
       expect.objectContaining({
         code: 'COUPON_NOT_FOUND',
@@ -57,11 +60,13 @@ describe('ApplyCouponUseCase and RemoveCouponUseCase', () => {
   it('should remove the coupon', async () => {
     await new ApplyCouponUseCase(orders, coupons).execute({
       orderId: ORDER_ID,
+      customerId: ANA,
       code: 'AGIL10',
     });
 
     const output = await new RemoveCouponUseCase(orders).execute({
       orderId: ORDER_ID,
+      customerId: ANA,
     });
 
     expect(output).toMatchObject({ couponCode: null, totalInCents: 9980 });

@@ -5,6 +5,7 @@ import { aStockItem } from '../inventory/domain/__tests__/stock-item.builder.js'
 import { PrismaStockItemRepository } from '../inventory/infrastructure/persistence/prisma-stock-item.repository.js';
 import type { OrderLifecycleDeps } from '../ordering/application/transition-order.js';
 import { AddOrderItemUseCase } from '../ordering/application/use-cases/add-order-item.use-case.js';
+import type { CustomerOrderRef } from '../ordering/application/load-order.js';
 import { CreateDraftOrderUseCase } from '../ordering/application/use-cases/create-draft-order.use-case.js';
 import { GetOrderUseCase } from '../ordering/application/use-cases/get-order.use-case.js';
 import { PlaceOrderUseCase } from '../ordering/application/use-cases/place-order.use-case.js';
@@ -53,18 +54,18 @@ describe('order fulfillment on the database', () => {
   async function draftWith(
     lines: [string, number][],
     customerId = CUSTOMER_ID,
-  ): Promise<string> {
+  ): Promise<CustomerOrderRef> {
     const draft = await new CreateDraftOrderUseCase(orders).execute({
       customerId,
     });
     for (const [sku, quantity] of lines) {
-      await addItem.execute({ orderId: draft.id, sku, quantity });
+      await addItem.execute({ orderId: draft.id, customerId, sku, quantity });
     }
-    return draft.id;
+    return { orderId: draft.id, customerId };
   }
 
-  async function statusOf(orderId: string): Promise<string> {
-    return (await new GetOrderUseCase(orders).execute({ orderId })).status;
+  async function statusOf(order: CustomerOrderRef): Promise<string> {
+    return (await new GetOrderUseCase(orders).execute(order)).status;
   }
 
   async function reservedOf(sku: string): Promise<number | undefined> {
@@ -80,34 +81,34 @@ describe('order fulfillment on the database', () => {
   }
 
   it('should keep the order as a draft and write nothing when an item is short (RN12)', async () => {
-    const orderId = await draftWith([
+    const order = await draftWith([
       ['CAN001', 3],
       ['CAM001', 2],
     ]);
 
     await expect(
-      new PlaceOrderUseCase(deps).execute({ orderId }),
+      new PlaceOrderUseCase(deps).execute(order),
     ).rejects.toMatchObject({
       code: 'STOCK_SHORTAGE',
     });
 
-    expect(await statusOf(orderId)).toBe('DRAFT');
+    expect(await statusOf(order)).toBe('DRAFT');
     expect(await reservedOf('CAN001')).toBe(0);
     expect(await historySize('CAN001')).toBe(0);
   });
 
   it('should undo the reservations when something after them fails', async () => {
-    const orderId = await draftWith([['CAN001', 3]]);
+    const order = await draftWith([['CAN001', 3]]);
     const failure = new Error('o e-mail de confirmação falhou');
     events.subscribe('OrderPlaced', {
       handle: async () => Promise.reject(failure),
     });
 
-    await expect(new PlaceOrderUseCase(deps).execute({ orderId })).rejects.toBe(
+    await expect(new PlaceOrderUseCase(deps).execute(order)).rejects.toBe(
       failure,
     );
 
-    expect(await statusOf(orderId)).toBe('DRAFT');
+    expect(await statusOf(order)).toBe('DRAFT');
     expect(await reservedOf('CAN001')).toBe(0);
     expect(await historySize('CAN001')).toBe(0);
   });
@@ -117,8 +118,8 @@ describe('order fulfillment on the database', () => {
     const second = await draftWith([['CAM001', 1]], OTHER_CUSTOMER_ID);
 
     const results = await Promise.allSettled([
-      new PlaceOrderUseCase(deps).execute({ orderId: first }),
-      new PlaceOrderUseCase(deps).execute({ orderId: second }),
+      new PlaceOrderUseCase(deps).execute(first),
+      new PlaceOrderUseCase(deps).execute(second),
     ]);
 
     const statuses = results.map((result) => result.status).sort();

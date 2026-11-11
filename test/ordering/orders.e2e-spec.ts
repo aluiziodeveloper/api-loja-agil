@@ -219,4 +219,32 @@ describe('Orders (e2e)', () => {
     ).toEqual([second, first]);
     expect(response.json()).toMatchObject({ meta: { total: 2 } });
   });
+
+  it.each([
+    ['GET', ''],
+    ['POST', '/items'],
+    ['POST', '/place'],
+    ['POST', '/cancel'],
+    ['DELETE', '/coupon'],
+  ] as const)(
+    "should answer 404 to %s on another customer's order (RN15)",
+    async (method, path) => {
+      const id = await draftWith(1);
+
+      const response = await app.inject({
+        method,
+        url: `/orders/${id}${path}`,
+        headers: bruno,
+        payload: { sku: 'CAN001', quantity: 1 },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'ORDER_NOT_FOUND',
+          message: `Pedido "${id}" não encontrado.`,
+        },
+      });
+    },
+  );
 });

@@ -6,6 +6,7 @@ import type { OrderRepository } from '../ports/order.repository.js';
 
 export type RemoveOrderItemInput = {
   orderId: string;
+  customerId: string;
   sku: string;
 };
 
@@ -17,8 +18,6 @@ export class RemoveOrderItemUseCase implements UseCase<
 
   async execute(input: RemoveOrderItemInput): Promise<OrderOutput> {
     const sku = Sku.create(input.sku);
-    return changeOrder(this.orders, input.orderId, (order) =>
-      order.removeItem(sku),
-    );
+    return changeOrder(this.orders, input, (order) => order.removeItem(sku));
   }
 }

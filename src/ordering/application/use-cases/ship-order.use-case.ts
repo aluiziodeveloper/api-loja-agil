@@ -1,4 +1,5 @@
 import type { UseCase } from '../../../shared/application/use-case.js';
+import { loadOrder } from '../load-order.js';
 import type { OrderOutput } from '../order-output.js';
 import {
   transitionOrder,
@@ -9,10 +10,15 @@ export type ShipOrderInput = {
   orderId: string;
 };
 
+/** A loja despacha qualquer pedido: a rota é só do operador (RN03). */
 export class ShipOrderUseCase implements UseCase<ShipOrderInput, OrderOutput> {
   constructor(private readonly deps: OrderLifecycleDeps) {}
 
   async execute(input: ShipOrderInput): Promise<OrderOutput> {
-    return transitionOrder(this.deps, input.orderId, (order) => order.ship());
+    return transitionOrder(
+      this.deps,
+      (orders) => loadOrder(orders, input.orderId),
+      (order) => order.ship(),
+    );
   }
 }

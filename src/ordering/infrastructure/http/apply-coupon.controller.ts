@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
+import { CurrentCustomer } from './current-customer.decorator.js';
 
 export const applyCouponBody = z.object({ code: z.string() });
 
@@ -18,10 +19,15 @@ export class ApplyCouponController {
 
   @Put(':id/coupon')
   async handle(
+    @CurrentCustomer() customerId: string,
     @Param('id') id: string,
     @Body(new ZodValidationPipe(applyCouponBody)) body: ApplyCouponBody,
   ): Promise<OrderResponse> {
-    const output = await this.applyCoupon.execute({ orderId: id, ...body });
+    const output = await this.applyCoupon.execute({
+      orderId: id,
+      customerId,
+      ...body,
+    });
     return presentOrder(output);
   }
 }

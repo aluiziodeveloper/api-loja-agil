@@ -10,6 +10,7 @@ import type { ProductCatalog } from '../ports/product-catalog.js';
 
 export type AddOrderItemInput = {
   orderId: string;
+  customerId: string;
   sku: string;
   quantity: number;
 };
@@ -31,8 +32,6 @@ export class AddOrderItemUseCase implements UseCase<
       throw new ProductUnavailableError(sku.toString());
     }
     const item = OrderItem.create({ sku, unitPrice: product.price, quantity });
-    return changeOrder(this.orders, input.orderId, (order) =>
-      order.addItem(item),
-    );
+    return changeOrder(this.orders, input, (order) => order.addItem(item));
   }
 }

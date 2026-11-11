@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PlaceOrderUseCase } from '../../application/use-cases/place-order.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
+import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Confirma o pedido e reserva o estoque, na mesma transação (RN12). */
 @Controller('orders')
@@ -18,7 +19,12 @@ export class PlaceOrderController {
 
   @Post(':id/place')
   @HttpCode(HttpStatus.OK)
-  async handle(@Param('id') id: string): Promise<OrderResponse> {
-    return presentOrder(await this.placeOrder.execute({ orderId: id }));
+  async handle(
+    @CurrentCustomer() customerId: string,
+    @Param('id') id: string,
+  ): Promise<OrderResponse> {
+    return presentOrder(
+      await this.placeOrder.execute({ orderId: id, customerId }),
+    );
   }
 }

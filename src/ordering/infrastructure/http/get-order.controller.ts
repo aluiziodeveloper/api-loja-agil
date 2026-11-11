@@ -1,8 +1,9 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
 import { GetOrderUseCase } from '../../application/use-cases/get-order.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
+import { CurrentCustomer } from './current-customer.decorator.js';
 
-/** Sem conferir o dono ainda: a posse do pedido (RN15) chega no módulo 12. */
+/** Só o pedido do próprio cliente (RN15): o de outro responde 404. */
 @Controller('orders')
 export class GetOrderController {
   constructor(
@@ -10,7 +11,12 @@ export class GetOrderController {
   ) {}
 
   @Get(':id')
-  async handle(@Param('id') id: string): Promise<OrderResponse> {
-    return presentOrder(await this.getOrder.execute({ orderId: id }));
+  async handle(
+    @CurrentCustomer() customerId: string,
+    @Param('id') id: string,
+  ): Promise<OrderResponse> {
+    return presentOrder(
+      await this.getOrder.execute({ orderId: id, customerId }),
+    );
   }
 }
