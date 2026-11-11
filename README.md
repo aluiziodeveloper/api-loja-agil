@@ -45,7 +45,7 @@ Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" 
 
 | Contexto   | Rotas                                                                                                                                                                                                                    |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Identidade | `POST /users`, `POST /auth/sign-in`, `GET`/`PATCH`/`DELETE /me`, `PUT /me/password`, `GET /users`, `GET /users/:id`, `POST /operators`                                                                                                                                   |
+| Identidade | `POST /users`, `POST /auth/sign-in`, `GET`/`PATCH`/`DELETE /me`, `PUT /me/password`, `GET /users`, `GET /users/:id`, `POST /operators`                                                                                   |
 | Catálogo   | `POST /products`, `GET /products`, `GET /products/:id`, `PATCH /products/:id`, `POST /products/:id/activate`, `POST /products/:id/deactivate`                                                                            |
 | Estoque    | `GET /stock/:sku`, `POST /stock/:sku/receipts`, `POST /stock/:sku/adjustments`, `PUT /stock/:sku/minimum-level`, `GET /stock/:sku/movements`                                                                             |
 | Pedidos    | `POST /orders`, `GET /orders`, `GET /orders/:id`, `POST /orders/:id/items`, `DELETE /orders/:id/items/:sku`, `PUT /orders/:id/coupon`, `DELETE /orders/:id/coupon`, `POST /orders/:id/place`, `/pay`, `/ship`, `/cancel` |
