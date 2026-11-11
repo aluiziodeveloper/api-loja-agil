@@ -8,7 +8,8 @@ import type { AccessTokens } from './access-tokens.js';
 import { requestOf } from './principal.js';
 import { IS_PUBLIC } from './public.decorator.js';
 
-const BEARER = /^Bearer (\S+)$/;
+/** O esquema não diferencia maiúsculas (RFC 7235); o token é um só, sem espaços. */
+const BEARER = /^Bearer (\S+)$/i;
 
 /**
  * Guard global: toda rota exige um token de acesso válido, menos as
