@@ -1,41 +1,36 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { authAs, customer, OPERATOR } from '../setup/auth.js';
+import { customer, OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
 const BRUNO = '6a2f41a3-c54b-4b4e-8c1a-5d3e2f1a0b9c';
 
-type OrderBody = { data: { id: string; status: string } };
-
 describe('Orders (e2e)', () => {
   let app: NestFastifyApplication;
-  let operator: { authorization: string };
-  let ana: { authorization: string };
-  let bruno: { authorization: string };
+  let api: TestClient;
+  let operator: TestClient;
+  let ana: TestClient;
+  let bruno: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
-    operator = await authAs(app, OPERATOR);
-    ana = await authAs(app, customer(ANA));
-    bruno = await authAs(app, customer(BRUNO));
+    api = TestClient.anonymous(app);
+    operator = await TestClient.as(app, OPERATOR);
+    ana = await TestClient.as(app, customer(ANA));
+    bruno = await TestClient.as(app, customer(BRUNO));
   });
 
   beforeEach(async () => {
     await resetDatabase(app.get(PrismaDatabase));
-    await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: '/products',
-      payload: { sku: 'CAN001', name: 'Caneca Ágil', priceInCents: 4590 },
+    await operator.post('/products', {
+      sku: 'CAN001',
+      name: 'Caneca Ágil',
+      priceInCents: 4590,
     });
-    await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: '/stock/CAN001/receipts',
-      payload: { quantity: 3 },
-    });
+    await operator.post('/stock/CAN001/receipts', { quantity: 3 });
   });
 
   afterAll(async () => {
@@ -43,45 +38,22 @@ describe('Orders (e2e)', () => {
   });
 
   async function draftWith(quantity: number): Promise<string> {
-    const draft = await app.inject({
-      method: 'POST',
-      url: '/orders',
-      headers: ana,
-    });
-    const { id } = draft.json<OrderBody>().data;
-    await app.inject({
-      headers: ana,
-      method: 'POST',
-      url: `/orders/${id}/items`,
-      payload: { sku: 'CAN001', quantity },
-    });
+    const draft = await ana.post('/orders');
+    const { id } = dataOf<{ id: string }>(draft);
+    await ana.post(`/orders/${id}/items`, { sku: 'CAN001', quantity });
     return id;
   }
 
   const transition = (id: string, action: string) =>
-    app.inject({
-      headers: ana,
-      method: 'POST',
-      url: `/orders/${id}/${action}`,
-    });
+    ana.post(`/orders/${id}/${action}`);
 
   const stockOf = async (sku: string) =>
-    (
-      await app.inject({
-        headers: operator,
-        method: 'GET',
-        url: `/stock/${sku}`,
-      })
-    ).json<{
-      data: { onHand: number; reserved: number };
-    }>().data;
+    dataOf<{ onHand: number; reserved: number }>(
+      await operator.get(`/stock/${sku}`),
+    );
 
   it('should open a draft for the customer of the request', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/orders',
-      headers: ana,
-    });
+    const response = await ana.post('/orders');
 
     expect(response.statusCode).toBe(201);
     expect(response.json()).toMatchObject({
@@ -90,7 +62,7 @@ describe('Orders (e2e)', () => {
   });
 
   it('should answer 401 without an access token', async () => {
-    const response = await app.inject({ method: 'POST', url: '/orders' });
+    const response = await api.post('/orders');
 
     expect(response.statusCode).toBe(401);
     expect(response.json()).toEqual({
@@ -104,11 +76,7 @@ describe('Orders (e2e)', () => {
   it('should add an item at the price of the catalog', async () => {
     const id = await draftWith(2);
 
-    const response = await app.inject({
-      headers: ana,
-      method: 'GET',
-      url: `/orders/${id}`,
-    });
+    const response = await ana.get(`/orders/${id}`);
 
     expect(response.json()).toMatchObject({
       data: {
@@ -150,11 +118,7 @@ describe('Orders (e2e)', () => {
         message: 'Estoque insuficiente: CAN001 (solicitado 5, disponível 3).',
       },
     });
-    const order = await app.inject({
-      headers: ana,
-      method: 'GET',
-      url: `/orders/${id}`,
-    });
+    const order = await ana.get(`/orders/${id}`);
     expect(order.json()).toMatchObject({ data: { status: 'DRAFT' } });
   });
 
@@ -174,11 +138,7 @@ describe('Orders (e2e)', () => {
   it('should answer 409 to a transition out of the lifecycle', async () => {
     const id = await draftWith(1);
 
-    const response = await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: `/orders/${id}/ship`,
-    });
+    const response = await operator.post(`/orders/${id}/ship`);
 
     expect(response.statusCode).toBe(409);
     expect(response.json()).toMatchObject({
@@ -189,11 +149,7 @@ describe('Orders (e2e)', () => {
   it('should remove an item from the draft', async () => {
     const id = await draftWith(1);
 
-    const response = await app.inject({
-      headers: ana,
-      method: 'DELETE',
-      url: `/orders/${id}/items/CAN001`,
-    });
+    const response = await ana.delete(`/orders/${id}/items/CAN001`);
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({ data: { items: [] } });
@@ -202,21 +158,14 @@ describe('Orders (e2e)', () => {
   it('should list only the orders of the customer, the newest first', async () => {
     const first = await draftWith(1);
     const second = await draftWith(1);
-    await app.inject({
-      method: 'POST',
-      url: '/orders',
-      headers: bruno,
-    });
+    await bruno.post('/orders');
 
-    const response = await app.inject({
-      method: 'GET',
-      url: '/orders',
-      headers: ana,
-    });
+    const response = await ana.get('/orders');
 
-    expect(
-      response.json<{ data: { id: string }[] }>().data.map(({ id }) => id),
-    ).toEqual([second, first]);
+    expect(dataOf<{ id: string }[]>(response).map(({ id }) => id)).toEqual([
+      second,
+      first,
+    ]);
     expect(response.json()).toMatchObject({ meta: { total: 2 } });
   });
 
@@ -231,11 +180,9 @@ describe('Orders (e2e)', () => {
     async (method, path) => {
       const id = await draftWith(1);
 
-      const response = await app.inject({
-        method,
-        url: `/orders/${id}${path}`,
-        headers: bruno,
-        payload: { sku: 'CAN001', quantity: 1 },
+      const response = await bruno.request(method, `/orders/${id}${path}`, {
+        sku: 'CAN001',
+        quantity: 1,
       });
 
       expect(response.statusCode).toBe(404);

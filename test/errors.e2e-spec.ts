@@ -1,11 +1,14 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { createTestApp } from './setup/create-test-app.js';
+import { TestClient } from './setup/test-client.js';
 
 describe('Error responses (e2e)', () => {
   let app: NestFastifyApplication;
+  let api: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
   });
 
   afterAll(async () => {
@@ -13,7 +16,7 @@ describe('Error responses (e2e)', () => {
   });
 
   it('should answer an unknown route in the same format', async () => {
-    const response = await app.inject({ method: 'GET', url: '/nada' });
+    const response = await api.get('/nada');
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toEqual({

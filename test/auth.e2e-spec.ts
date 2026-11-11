@@ -1,12 +1,15 @@
 import { JwtService } from '@nestjs/jwt';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { createTestApp } from './setup/create-test-app.js';
+import { TestClient } from './setup/test-client.js';
 
 describe('Authentication (e2e)', () => {
   let app: NestFastifyApplication;
+  let api: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
   });
 
   afterAll(async () => {
@@ -21,7 +24,7 @@ describe('Authentication (e2e)', () => {
   };
 
   it('should answer 401 to a protected route without a token', async () => {
-    const response = await app.inject({ method: 'GET', url: '/users' });
+    const response = await api.get('/users');
 
     expect(response.statusCode).toBe(401);
     expect(response.json()).toEqual(unauthorized);
@@ -74,7 +77,7 @@ describe('Authentication (e2e)', () => {
     ['GET', '/health'],
     ['GET', '/products'],
   ] as const)('should keep %s %s open to anyone', async (method, url) => {
-    const response = await app.inject({ method, url });
+    const response = await api.request(method, url);
 
     expect(response.statusCode).toBe(200);
   });

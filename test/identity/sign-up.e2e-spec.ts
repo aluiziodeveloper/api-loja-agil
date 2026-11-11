@@ -2,13 +2,16 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { TestClient } from '../setup/test-client.js';
 
 describe('POST /users (e2e)', () => {
   let app: NestFastifyApplication;
+  let api: TestClient;
   let database: PrismaDatabase;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
     database = app.get(PrismaDatabase);
   });
 
@@ -20,8 +23,7 @@ describe('POST /users (e2e)', () => {
     await app.close();
   });
 
-  const signUp = (payload: object) =>
-    app.inject({ method: 'POST', url: '/users', payload });
+  const signUp = (payload: object) => api.post('/users', payload);
 
   it('should register a customer and answer 201 without the password', async () => {
     const response = await signUp({
