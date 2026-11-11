@@ -41,6 +41,21 @@ describe('InMemoryOrderRepository', () => {
     );
   });
 
+  it('should go back to a checkpoint', async () => {
+    const kept = anOrder().build();
+    const undone = anOrder().build();
+    await orders.save(kept);
+    const rollback = orders.checkpoint();
+    kept.place();
+    await orders.save(kept);
+    await orders.save(undone);
+
+    rollback();
+
+    expect((await orders.findById(kept.id))?.toSnapshot().status).toBe('DRAFT');
+    expect(await orders.findById(undone.id)).toBeNull();
+  });
+
   it('should list the orders of a customer, newest first', async () => {
     const oldest = anOrder()
       .withCustomerId(CUSTOMER_ID)

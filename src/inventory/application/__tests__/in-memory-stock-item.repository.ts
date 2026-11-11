@@ -5,6 +5,7 @@ import type { Sku } from '../../../shared/domain/sku.value-object.js';
 import { StockItem } from '../../domain/stock-item.entity.js';
 import type { StockItemSnapshot } from '../../domain/stock-item.snapshot.js';
 import type { StockMovement } from '../../domain/stock-movement.js';
+import type { Restorable } from '../../../shared/application/__tests__/in-memory-transaction.js';
 import type { MovementSearchParams } from '../movement-search.js';
 import type { StockItemRepository } from '../ports/stock-item.repository.js';
 
@@ -22,9 +23,23 @@ function chronological(first: MovementRecord, second: MovementRecord): number {
   return byTime || first.sequence - second.sequence;
 }
 
-export class InMemoryStockItemRepository implements StockItemRepository {
-  private readonly snapshots = new Map<string, StockItemSnapshot>();
-  private readonly movements: MovementRecord[] = [];
+export class InMemoryStockItemRepository
+  implements StockItemRepository, Restorable
+{
+  private snapshots = new Map<string, StockItemSnapshot>();
+  private movements: MovementRecord[] = [];
+
+  /** Estado e histórico voltam juntos, como numa transação do banco. */
+  checkpoint(): () => void {
+    const saved = {
+      snapshots: new Map(this.snapshots),
+      movements: [...this.movements],
+    };
+    return () => {
+      this.snapshots = saved.snapshots;
+      this.movements = saved.movements;
+    };
+  }
 
   async save(stockItem: StockItem): Promise<void> {
     const snapshot = stockItem.toSnapshot();

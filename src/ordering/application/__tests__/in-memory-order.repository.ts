@@ -4,6 +4,7 @@ import { paginate } from '../../../shared/application/__tests__/paginate.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
 import { Order } from '../../domain/order.entity.js';
 import type { OrderSnapshot } from '../../domain/order.snapshot.js';
+import type { Restorable } from '../../../shared/application/__tests__/in-memory-transaction.js';
 import type { OrderSearchParams } from '../order-search.js';
 import type { OrderRepository } from '../ports/order.repository.js';
 
@@ -14,8 +15,16 @@ function byCreation(first: OrderSnapshot, second: OrderSnapshot): number {
 }
 
 /** Guarda cópias: o snapshot tem `Date` e listas, que são mutáveis. */
-export class InMemoryOrderRepository implements OrderRepository {
-  private readonly snapshots = new Map<string, OrderSnapshot>();
+export class InMemoryOrderRepository implements OrderRepository, Restorable {
+  private snapshots = new Map<string, OrderSnapshot>();
+
+  /** Os snapshots guardados nunca mudam: copiar o mapa basta. */
+  checkpoint(): () => void {
+    const saved = new Map(this.snapshots);
+    return () => {
+      this.snapshots = saved;
+    };
+  }
 
   async save(order: Order): Promise<void> {
     const snapshot = order.toSnapshot();
