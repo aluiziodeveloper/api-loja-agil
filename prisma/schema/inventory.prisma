@@ -14,6 +14,8 @@ model StockItem {
   onHand       Int             @map("on_hand")
   reserved     Int
   minimumLevel Int             @map("minimum_level")
+  /// Travamento otimista: cada gravação soma 1; quem gravar com a versão velha é recusado.
+  version      Int             @default(0)
   movements    StockMovement[]
 
   @@map("stock_items")

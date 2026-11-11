@@ -1,3 +1,4 @@
+import { ConcurrentUpdateError } from '../../../shared/application/concurrent-update.error.js';
 import { SortDirection } from '../../../shared/application/search/search-params.js';
 import type { SearchResult } from '../../../shared/application/search/search-result.js';
 import { paginate } from '../../../shared/application/__tests__/paginate.js';
@@ -28,21 +29,34 @@ export class InMemoryStockItemRepository
 {
   private snapshots = new Map<string, StockItemSnapshot>();
   private movements: MovementRecord[] = [];
+  /** Versão gravada de cada SKU, e a versão que cada instância carregou. */
+  private storedVersions = new Map<string, number>();
+  private readonly loadedVersions = new WeakMap<StockItem, number>();
 
   /** Estado e histórico voltam juntos, como numa transação do banco. */
   checkpoint(): () => void {
     const saved = {
       snapshots: new Map(this.snapshots),
       movements: [...this.movements],
+      storedVersions: new Map(this.storedVersions),
     };
     return () => {
       this.snapshots = saved.snapshots;
       this.movements = saved.movements;
+      this.storedVersions = saved.storedVersions;
     };
   }
 
+  /** Travamento otimista: só grava se ninguém gravou depois do carregamento. */
   async save(stockItem: StockItem): Promise<void> {
     const snapshot = stockItem.toSnapshot();
+    const stored = this.storedVersions.get(snapshot.sku);
+    if (stored !== this.loadedVersions.get(stockItem)) {
+      throw new ConcurrentUpdateError();
+    }
+    const version = (stored ?? -1) + 1;
+    this.storedVersions.set(snapshot.sku, version);
+    this.loadedVersions.set(stockItem, version);
     this.snapshots.set(snapshot.sku, snapshot);
     for (const movement of stockItem.pullMovements()) {
       const sequence = this.movements.length;
@@ -52,7 +66,15 @@ export class InMemoryStockItemRepository
 
   async findBySku(sku: Sku): Promise<StockItem | null> {
     const snapshot = this.snapshots.get(sku.toString());
-    return snapshot ? StockItem.restore(snapshot) : null;
+    if (!snapshot) {
+      return null;
+    }
+    const stockItem = StockItem.restore(snapshot);
+    this.loadedVersions.set(
+      stockItem,
+      this.storedVersions.get(snapshot.sku) ?? 0,
+    );
+    return stockItem;
   }
 
   async findMovements(
