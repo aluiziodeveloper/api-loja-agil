@@ -13,6 +13,17 @@ docker compose up -d
 docker compose exec app npm run start:dev
 ```
 
+## Banco de dados
+
+PostgreSQL 18 no serviço `db` do Compose, com dois bancos: `loja_agil` e `loja_agil_test`. O schema fica em `prisma/schema/`, um arquivo por contexto (ADR 0012).
+
+```bash
+docker compose exec app npm run db:migrate   # cria e aplica migrations
+docker compose exec app npm run db:generate  # regenera o client em src/generated
+```
+
+Os bancos usam a collation ICU `pt-BR`, definida na criação do volume. Se o seu volume é anterior a ela, recrie-o com `docker compose down -v`.
+
 ## Verificações (as mesmas do CI)
 
 ```bash
@@ -41,6 +52,8 @@ src/
     application/     casos de uso e portas
     infrastructure/  NestJS, banco de dados, HTTP
   integration/ liga os contextos: adaptadores e inscrições nos eventos (ADR 0011)
+  generated/   client do Prisma, gerado (fora do Git)
+prisma/        schema por contexto e migrations
 katas/         exercícios do curso, fora do build
 ```
 
