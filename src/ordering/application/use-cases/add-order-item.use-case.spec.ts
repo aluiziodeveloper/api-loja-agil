@@ -4,6 +4,8 @@ import { InMemoryProductCatalog } from '../__tests__/in-memory-product-catalog.j
 import { AddOrderItemUseCase } from './add-order-item.use-case.js';
 
 const ORDER_ID = '01890a5d-ac96-774b-bcce-b302099a8058';
+const ANA = '01890a5d-ac96-774b-bcce-b302099a8057';
+const BRUNO = '01890a5d-ac96-774b-bcce-b302099a8056';
 
 describe('AddOrderItemUseCase', () => {
   let orders: InMemoryOrderRepository;
@@ -15,12 +17,15 @@ describe('AddOrderItemUseCase', () => {
     catalog = new InMemoryProductCatalog();
     addItem = new AddOrderItemUseCase(orders, catalog);
     catalog.register({ sku: 'CAN001', priceInCents: 4990 });
-    await orders.save(anOrder().withId(ORDER_ID).withItems().build());
+    await orders.save(
+      anOrder().withId(ORDER_ID).withCustomerId(ANA).withItems().build(),
+    );
   });
 
   it('should add the product with the current catalog price (RN10)', async () => {
     const output = await addItem.execute({
       orderId: ORDER_ID,
+      customerId: ANA,
       sku: 'can001',
       quantity: 2,
     });
@@ -37,11 +42,17 @@ describe('AddOrderItemUseCase', () => {
   });
 
   it('should keep the frozen price when the catalog price changes', async () => {
-    await addItem.execute({ orderId: ORDER_ID, sku: 'CAN001', quantity: 1 });
+    await addItem.execute({
+      orderId: ORDER_ID,
+      customerId: ANA,
+      sku: 'CAN001',
+      quantity: 1,
+    });
     catalog.register({ sku: 'CAN001', priceInCents: 5990 });
 
     const output = await addItem.execute({
       orderId: ORDER_ID,
+      customerId: ANA,
       sku: 'CAN001',
       quantity: 1,
     });
@@ -63,7 +74,7 @@ describe('AddOrderItemUseCase', () => {
     catalog.register({ sku: 'CAM001', priceInCents: 7990, active });
 
     await expect(
-      addItem.execute({ orderId: ORDER_ID, sku, quantity: 1 }),
+      addItem.execute({ orderId: ORDER_ID, customerId: ANA, sku, quantity: 1 }),
     ).rejects.toThrow(
       expect.objectContaining({
         code: 'PRODUCT_UNAVAILABLE',
@@ -76,6 +87,7 @@ describe('AddOrderItemUseCase', () => {
     await expect(
       addItem.execute({
         orderId: '01890a5d-ac96-774b-bcce-b302099a8099',
+        customerId: ANA,
         sku: 'CAN001',
         quantity: 1,
       }),
@@ -86,5 +98,16 @@ describe('AddOrderItemUseCase', () => {
           'Pedido "01890a5d-ac96-774b-bcce-b302099a8099" não encontrado.',
       }),
     );
+  });
+
+  it('should not change the order of another customer (RN15)', async () => {
+    await expect(
+      addItem.execute({
+        orderId: ORDER_ID,
+        customerId: BRUNO,
+        sku: 'CAN001',
+        quantity: 1,
+      }),
+    ).rejects.toThrow(expect.objectContaining({ code: 'ORDER_NOT_FOUND' }));
   });
 });

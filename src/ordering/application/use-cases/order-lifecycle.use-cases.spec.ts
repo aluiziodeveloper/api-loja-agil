@@ -11,9 +11,14 @@ import { PlaceOrderUseCase } from './place-order.use-case.js';
 import { ShipOrderUseCase } from './ship-order.use-case.js';
 
 const ORDER_ID = '01890a5d-ac96-774b-bcce-b302099a8058';
+const ANA = '01890a5d-ac96-774b-bcce-b302099a8057';
+const BRUNO = '01890a5d-ac96-774b-bcce-b302099a8056';
 
 type LifecycleUseCase = {
-  execute(input: { orderId: string }): Promise<{ status: string }>;
+  execute(input: {
+    orderId: string;
+    customerId: string;
+  }): Promise<{ status: string }>;
 };
 
 describe('order lifecycle use cases', () => {
@@ -28,7 +33,9 @@ describe('order lifecycle use cases', () => {
   });
 
   async function storedOrder(status: OrderStatus): Promise<void> {
-    await orders.save(anOrder().withId(ORDER_ID).withStatus(status).build());
+    await orders.save(
+      anOrder().withId(ORDER_ID).withCustomerId(ANA).withStatus(status).build(),
+    );
   }
 
   async function storedStatus(): Promise<OrderStatus | undefined> {
@@ -73,7 +80,10 @@ describe('order lifecycle use cases', () => {
       });
       const lifecycle: LifecycleUseCase = new useCase(deps);
 
-      const output = await lifecycle.execute({ orderId: ORDER_ID });
+      const output = await lifecycle.execute({
+        orderId: ORDER_ID,
+        customerId: ANA,
+      });
 
       expect(output.status).toBe(to);
       expect(await storedStatus()).toBe(to);
@@ -89,7 +99,10 @@ describe('order lifecycle use cases', () => {
     });
 
     await expect(
-      new PlaceOrderUseCase(deps).execute({ orderId: ORDER_ID }),
+      new PlaceOrderUseCase(deps).execute({
+        orderId: ORDER_ID,
+        customerId: ANA,
+      }),
     ).rejects.toBe(failure);
     expect(await storedStatus()).toBe(OrderStatus.DRAFT);
   });
@@ -98,17 +111,52 @@ describe('order lifecycle use cases', () => {
     await storedOrder(OrderStatus.SHIPPED);
 
     await expect(
-      new CancelOrderUseCase(deps).execute({ orderId: ORDER_ID }),
+      new CancelOrderUseCase(deps).execute({
+        orderId: ORDER_ID,
+        customerId: ANA,
+      }),
     ).rejects.toThrow(
       expect.objectContaining({ code: 'INVALID_ORDER_TRANSITION' }),
     );
   });
 
   it('should refuse to place an empty order', async () => {
-    await orders.save(anOrder().withId(ORDER_ID).withItems().build());
+    await orders.save(
+      anOrder().withId(ORDER_ID).withCustomerId(ANA).withItems().build(),
+    );
 
     await expect(
-      new PlaceOrderUseCase(deps).execute({ orderId: ORDER_ID }),
+      new PlaceOrderUseCase(deps).execute({
+        orderId: ORDER_ID,
+        customerId: ANA,
+      }),
     ).rejects.toThrow(expect.objectContaining({ code: 'EMPTY_ORDER' }));
+  });
+
+  it.each([
+    { useCase: PlaceOrderUseCase, from: OrderStatus.DRAFT },
+    { useCase: PayOrderUseCase, from: OrderStatus.PLACED },
+    { useCase: CancelOrderUseCase, from: OrderStatus.PLACED },
+  ])(
+    '$useCase.name should not touch the order of another customer (RN15)',
+    async ({ useCase, from }) => {
+      await storedOrder(from);
+      const lifecycle: LifecycleUseCase = new useCase(deps);
+
+      await expect(
+        lifecycle.execute({ orderId: ORDER_ID, customerId: BRUNO }),
+      ).rejects.toThrow(expect.objectContaining({ code: 'ORDER_NOT_FOUND' }));
+      expect(await storedStatus()).toBe(from);
+    },
+  );
+
+  it('should let the store ship the order of any customer', async () => {
+    await storedOrder(OrderStatus.PAID);
+
+    const output = await new ShipOrderUseCase(deps).execute({
+      orderId: ORDER_ID,
+    });
+
+    expect(output.status).toBe(OrderStatus.SHIPPED);
   });
 });

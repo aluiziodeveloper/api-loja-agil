@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { RemoveCouponUseCase } from '../../application/use-cases/remove-coupon.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
+import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Tira o cupom de um rascunho. */
 @Controller('orders')
@@ -19,7 +20,12 @@ export class RemoveCouponController {
 
   @Delete(':id/coupon')
   @HttpCode(HttpStatus.OK)
-  async handle(@Param('id') id: string): Promise<OrderResponse> {
-    return presentOrder(await this.removeCoupon.execute({ orderId: id }));
+  async handle(
+    @CurrentCustomer() customerId: string,
+    @Param('id') id: string,
+  ): Promise<OrderResponse> {
+    return presentOrder(
+      await this.removeCoupon.execute({ orderId: id, customerId }),
+    );
   }
 }

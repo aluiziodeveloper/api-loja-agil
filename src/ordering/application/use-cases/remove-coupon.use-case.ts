@@ -5,6 +5,7 @@ import type { OrderRepository } from '../ports/order.repository.js';
 
 export type RemoveCouponInput = {
   orderId: string;
+  customerId: string;
 };
 
 export class RemoveCouponUseCase implements UseCase<
@@ -14,8 +15,6 @@ export class RemoveCouponUseCase implements UseCase<
   constructor(private readonly orders: OrderRepository) {}
 
   async execute(input: RemoveCouponInput): Promise<OrderOutput> {
-    return changeOrder(this.orders, input.orderId, (order) =>
-      order.removeCoupon(),
-    );
+    return changeOrder(this.orders, input, (order) => order.removeCoupon());
   }
 }
