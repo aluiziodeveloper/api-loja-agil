@@ -11,6 +11,7 @@ export default defineConfig({
       include: ['src/**/*.ts', 'katas/**/*.ts'],
       exclude: [
         'src/**/__tests__/**',
+        'src/generated/**',
         '**/*.spec.ts',
         'src/**/*.module.ts',
         'src/main.ts',

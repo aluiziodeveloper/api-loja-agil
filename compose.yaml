@@ -8,7 +8,33 @@ services:
     env_file:
       - path: .env
         required: false
+    environment:
+      DATABASE_URL: postgresql://postgres:docker@db:5432/loja_agil?schema=public
+      DATABASE_URL_TEST: postgresql://postgres:docker@db:5432/loja_agil_test?schema=public
     volumes:
       - .:/app
     ports:
       - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: loja_agil
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - pg_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d loja_agil']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pg_data:
