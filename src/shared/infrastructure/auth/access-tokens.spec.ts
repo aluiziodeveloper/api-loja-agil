@@ -65,4 +65,51 @@ describe('AccessTokens', () => {
   ])('should not trust a token %s', async (_, tokenOf) => {
     await expect(tokens.verify(await tokenOf())).resolves.toBeNull();
   });
+
+  describe('a token it must not trust', () => {
+    const base64url = (part: object) =>
+      Buffer.from(JSON.stringify(part)).toString('base64url');
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should refuse a token past its expiration', async () => {
+      vi.useFakeTimers();
+      const { accessToken } = await tokens.issue(ana);
+
+      vi.advanceTimersByTime(901 * 1000);
+
+      await expect(tokens.verify(accessToken)).resolves.toBeNull();
+    });
+
+    it('should refuse a token whose claims were changed', async () => {
+      const { accessToken } = await tokens.issue(ana);
+      const [header, , signature] = accessToken.split('.');
+      const promoted = base64url({ sub: ana.userId, role: 'OPERATOR' });
+
+      await expect(
+        tokens.verify(`${header}.${promoted}.${signature}`),
+      ).resolves.toBeNull();
+    });
+
+    it('should refuse an unsigned token (alg: none)', async () => {
+      const unsigned = [
+        base64url({ alg: 'none', typ: 'JWT' }),
+        base64url({ sub: ana.userId, role: 'OPERATOR' }),
+        '',
+      ].join('.');
+
+      await expect(tokens.verify(unsigned)).resolves.toBeNull();
+    });
+
+    it('should refuse a token signed with another algorithm', async () => {
+      const hs512 = await new JwtService({ secret }).signAsync(
+        { sub: ana.userId, role: 'OPERATOR' },
+        { algorithm: 'HS512' },
+      );
+
+      await expect(tokens.verify(hs512)).resolves.toBeNull();
+    });
+  });
 });

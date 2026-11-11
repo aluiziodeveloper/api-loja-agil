@@ -30,6 +30,8 @@ export class AccessTokens {
     this.jwt = new JwtService({
       secret: options.secret,
       signOptions: { algorithm: 'HS256', expiresIn: options.expiresInSeconds },
+      // Sem esta lista, a verificação aceita qualquer HMAC com o mesmo segredo.
+      verifyOptions: { algorithms: ['HS256'] },
     });
   }
 

@@ -52,8 +52,21 @@ describe('AuthGuard', () => {
     expect(request.principal).toEqual(ana);
   });
 
+  it('should read the Bearer scheme in any case, as HTTP does', async () => {
+    const { accessToken } = await tokens.issue(ana);
+    const request: AuthenticatedRequest = {
+      headers: { authorization: `bearer ${accessToken}` },
+    };
+
+    await expect(
+      guard.canActivate(contextFor('protected', request)),
+    ).resolves.toBe(true);
+  });
+
   it.each([
     ['no token', {}],
+    ['an empty Bearer', { authorization: 'Bearer ' }],
+    ['two tokens', { authorization: 'Bearer abc.def.ghi jkl.mno.pqr' }],
     ['a token without the Bearer scheme', { authorization: 'abc.def.ghi' }],
     ['a token it cannot trust', { authorization: 'Bearer abc.def.ghi' }],
   ])('should answer 401 to %s', async (_, headers) => {
