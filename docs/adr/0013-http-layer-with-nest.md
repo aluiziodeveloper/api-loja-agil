@@ -18,7 +18,7 @@ As regras de lint (ADR 0010) também pesam: um controller com seis casos de uso 
 - **Erros num formato só.** O `ErrorResponseFilter`, global, responde `{ "error": { "code", "message" } }`. Cada contexto declara o status dos seus códigos; a aplicação junta os mapas, e um teste os mantém iguais a `docs/error-codes.md`. Um erro inesperado responde `INTERNAL_ERROR` (500) e vai para o log, sem expor mensagem nem pilha.
 - **Respostas em envelope.** O `EnvelopeInterceptor` responde `{ "data" }`, e uma página `{ "data", "meta" }`. Os presenters são schemas Zod de resposta: só os campos do contrato saem.
 - **A integração entrega as portas entre contextos.** O `IntegrationModule`, global, fornece `ProductCatalog` e `EventPublisher` e liga o Estoque aos eventos de Pedidos na inicialização; nenhum contexto o importa.
-- **Cliente provisório.** Até a autenticação (módulo 12), os pedidos identificam o cliente pelo header `x-customer-id`, lido pelo decorator `@CurrentCustomer()`.
+- **Cliente provisório.** Até a autenticação (módulo 12), os pedidos identificam o cliente pelo header `x-customer-id`, lido pelo decorator `@CurrentCustomer()`. Substituído pelo token de acesso na [ADR 0014](0014-authentication-with-jwt-and-global-guards.md).
 
 ## Consequências
 
