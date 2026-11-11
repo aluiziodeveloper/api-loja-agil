@@ -5,10 +5,12 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
 import { DeleteAccountUseCase } from '../../application/use-cases/delete-account.use-case.js';
 
+@ApiTags('Identidade')
 @Controller('me')
 export class DeleteMeController {
   constructor(

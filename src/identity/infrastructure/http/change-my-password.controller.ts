@@ -6,6 +6,7 @@ import {
   Inject,
   Put,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
@@ -19,6 +20,7 @@ export const changeMyPasswordBody = z.object({
 
 type ChangeMyPasswordBody = z.infer<typeof changeMyPasswordBody>;
 
+@ApiTags('Identidade')
 @Controller('me')
 export class ChangeMyPasswordController {
   constructor(

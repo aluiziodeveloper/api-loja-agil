@@ -1,9 +1,11 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case.js';
 import { presentUser, type UserResponse } from './user.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
+@ApiTags('Identidade')
 @Controller('users')
 export class GetUserController {
   constructor(

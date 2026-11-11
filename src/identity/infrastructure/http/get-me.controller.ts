@@ -1,4 +1,5 @@
 import { Controller, Get, Inject } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case.js';
@@ -8,6 +9,7 @@ import { presentUser, type UserResponse } from './user.presenter.js';
  * `/me` não tem id na URL: o usuário é sempre o do token. Não existe "o
  * perfil de outro" para tentar, e por isso não há o que conferir.
  */
+@ApiTags('Identidade')
 @Controller('me')
 export class GetMeController {
   constructor(

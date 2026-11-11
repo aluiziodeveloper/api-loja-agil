@@ -6,11 +6,13 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { RemoveCouponUseCase } from '../../application/use-cases/remove-coupon.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Tira o cupom de um rascunho. */
+@ApiTags('Pedidos')
 @Controller('orders')
 export class RemoveCouponController {
   constructor(

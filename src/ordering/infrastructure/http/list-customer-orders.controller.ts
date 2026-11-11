@@ -1,4 +1,5 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import type { z } from 'zod';
 import {
   type Page,
@@ -19,6 +20,7 @@ export const listCustomerOrdersQuery = searchQuery.pick({
 
 type ListCustomerOrdersQuery = z.infer<typeof listCustomerOrdersQuery>;
 
+@ApiTags('Pedidos')
 @Controller('orders')
 export class ListCustomerOrdersController {
   constructor(

@@ -6,6 +6,7 @@ import {
   Inject,
   Post,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { AccessTokens } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -27,6 +28,7 @@ type SignInBody = z.infer<typeof signInBody>;
  * O caso de uso diz quem é o usuário; o token é assunto da borda HTTP. Por
  * isso o `SignInUseCase` não conhece o JWT, e o controller junta os dois.
  */
+@ApiTags('Identidade')
 @Controller('auth')
 export class SignInController {
   constructor(

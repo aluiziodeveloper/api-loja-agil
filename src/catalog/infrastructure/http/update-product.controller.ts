@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Param, Patch } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { UpdateProductUseCase } from '../../application/use-cases/update-product.use-case.js';
@@ -14,6 +15,7 @@ export const updateProductBody = z.object({
 
 type UpdateProductBody = z.infer<typeof updateProductBody>;
 
+@ApiTags('Catálogo')
 @Controller('products')
 export class UpdateProductController {
   constructor(

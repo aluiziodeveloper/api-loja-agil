@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SignUpUseCase } from '../../application/use-cases/sign-up.use-case.js';
@@ -15,6 +16,7 @@ export const signUpBody = z.object({
 type SignUpBody = z.infer<typeof signUpBody>;
 
 /** Um controller por caso de uso: traduz a requisição e devolve a resposta. */
+@ApiTags('Identidade')
 @Controller('users')
 export class SignUpController {
   /** `@Inject` explícito: o token não depende do metadado gerado pelo compilador. */

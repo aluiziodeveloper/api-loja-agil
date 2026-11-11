@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case.js';
@@ -10,6 +11,7 @@ export const applyCouponBody = z.object({ code: z.string() });
 type ApplyCouponBody = z.infer<typeof applyCouponBody>;
 
 /** Um pedido tem no máximo um cupom: ele é um sub-recurso único, por isso PUT. */
+@ApiTags('Pedidos')
 @Controller('orders')
 export class ApplyCouponController {
   constructor(

@@ -42,6 +42,8 @@ docker compose exec app sh -c "npm run format:check && npm run lint && npm run t
 
 ## API
 
+Com a aplicação no ar, a documentação interativa fica em <http://localhost:3000/docs>, e o documento OpenAPI, em <http://localhost:3000/docs-json>.
+
 Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" }`), e toda falha em `{ "error": { "code", "message" } }` (ADR 0013). Os códigos e seus status estão em [docs/error-codes.md](docs/error-codes.md).
 
 | Contexto   | Rotas                                                                                                                                                                                                                    |
@@ -82,3 +84,4 @@ katas/         exercícios do curso, fora do build
 - [Decisões de arquitetura (ADRs)](docs/adr/README.md)
 - [Glossário: linguagem ubíqua](docs/glossary.md)
 - [Códigos de erro da API](docs/error-codes.md)
+- Documentação OpenAPI: `/docs` com a aplicação no ar

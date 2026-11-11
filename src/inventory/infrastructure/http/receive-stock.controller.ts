@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ReceiveStockUseCase } from '../../application/use-cases/receive-stock.use-case.js';
@@ -11,6 +12,7 @@ export const receiveStockBody = z.object({ quantity: z.number() });
 type ReceiveStockBody = z.infer<typeof receiveStockBody>;
 
 /** Cada entrada é um registro novo no histórico: POST e 201. */
+@ApiTags('Estoque')
 @Controller('stock')
 export class ReceiveStockController {
   constructor(

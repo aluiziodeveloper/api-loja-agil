@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Patch } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
@@ -16,6 +17,7 @@ export const updateMeBody = z
 
 type UpdateMeBody = z.infer<typeof updateMeBody>;
 
+@ApiTags('Identidade')
 @Controller('me')
 export class UpdateMeController {
   constructor(

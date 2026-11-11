@@ -6,11 +6,13 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { PayOrderUseCase } from '../../application/use-cases/pay-order.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Registra o pagamento e dá baixa nas unidades reservadas (RN13). */
+@ApiTags('Pedidos')
 @Controller('orders')
 export class PayOrderController {
   constructor(

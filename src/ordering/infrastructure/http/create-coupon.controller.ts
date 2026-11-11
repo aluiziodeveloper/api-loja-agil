@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { CreateCouponUseCase } from '../../application/use-cases/create-coupon.use-case.js';
@@ -23,6 +24,7 @@ export const createCouponBody = z.object({
 
 type CreateCouponBody = z.infer<typeof createCouponBody>;
 
+@ApiTags('Pedidos')
 @Controller('coupons')
 export class CreateCouponController {
   constructor(

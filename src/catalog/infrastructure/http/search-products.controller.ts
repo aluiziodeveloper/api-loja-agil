@@ -1,4 +1,5 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import {
   type Page,
@@ -17,6 +18,7 @@ export const searchProductsQuery = searchQuery.extend({
 
 type SearchProductsQuery = z.infer<typeof searchProductsQuery>;
 
+@ApiTags('Catálogo')
 @Controller('products')
 export class SearchProductsController {
   constructor(
