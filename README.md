@@ -16,7 +16,7 @@ docker compose exec app npm run start:dev
 ## Verificações (as mesmas do CI)
 
 ```bash
-docker compose exec app sh -c "npm run format:check && npm run lint && npm run typecheck && npm run arch && npm run test:cov && npm run test:e2e && npm run build"
+docker compose exec app sh -c "npm run format:check && npm run lint && npm run typecheck && npm run arch && npm run test:cov && npm run test:int && npm run test:e2e && npm run build"
 ```
 
 | Script              | O que verifica                                                   |
@@ -25,6 +25,7 @@ docker compose exec app sh -c "npm run format:check && npm run lint && npm run t
 | `npm run typecheck` | Tipos do TypeScript                                              |
 | `npm run arch`      | Regras de dependência entre camadas e contextos (ADR 0002)       |
 | `npm run test:cov`  | Testes de unidade, com cobertura mínima de 90% e 100% no domínio |
+| `npm run test:int`  | Testes de integração, contra o banco de testes                   |
 | `npm run test:e2e`  | Testes ponta a ponta da API                                      |
 
 ## Estrutura

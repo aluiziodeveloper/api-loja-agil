@@ -26,6 +26,7 @@
         "required_status_checks": [
           { "context": "Lint" },
           { "context": "Tests" },
+          { "context": "Integration" },
           { "context": "Build" },
           { "context": "Conventional PR title" }
         ]
