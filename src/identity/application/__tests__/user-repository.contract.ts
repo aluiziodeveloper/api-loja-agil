@@ -76,4 +76,8 @@ export function userRepositoryContract(
       [bruno.id.toString(), carla.id.toString()].sort(),
     );
   });
+
+  it('should ignore the deletion of a user that does not exist', async () => {
+    await expect(repository.delete(UniqueId.create())).resolves.toBeUndefined();
+  });
 }

@@ -1,0 +1,16 @@
+// Identidade & Acesso. Os tamanhos das colunas acompanham os value objects.
+
+enum Role {
+  CUSTOMER
+  OPERATOR
+}
+
+model User {
+  id           String @id @db.Uuid
+  name         String @db.VarChar(100)
+  email        String @unique @db.VarChar(254)
+  passwordHash String @map("password_hash")
+  role         Role
+
+  @@map("users")
+}
