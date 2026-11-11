@@ -1,5 +1,6 @@
 import { SearchResult } from '../../../shared/application/search/search-result.js';
 import type { Sku } from '../../../shared/domain/sku.value-object.js';
+import { pageOf } from '../../../shared/infrastructure/database/page-of.js';
 import type { PrismaDatabase } from '../../../shared/infrastructure/database/prisma-database.js';
 import type { MovementSearchParams } from '../../application/movement-search.js';
 import type { StockItemRepository } from '../../application/ports/stock-item.repository.js';
@@ -17,14 +18,10 @@ function toMovement({
   return { type, onHandChange, reservedChange, reason, occurredAt };
 }
 
-/** A página pedida. Mesmo horário? Vale a ordem de gravação, na direção pedida. */
-function historyPage(params: MovementSearchParams) {
+/** Mesmo horário? Vale a ordem de gravação, na direção pedida. */
+function chronological(params: MovementSearchParams) {
   const direction = params.sortDirection();
-  return {
-    orderBy: [{ occurredAt: direction }, { id: direction }],
-    skip: params.offset(),
-    take: params.perPage(),
-  };
+  return [{ occurredAt: direction }, { id: direction }];
 }
 
 export class PrismaStockItemRepository implements StockItemRepository {
@@ -56,9 +53,10 @@ export class PrismaStockItemRepository implements StockItemRepository {
     params: MovementSearchParams,
   ): Promise<SearchResult<StockMovement>> {
     const where = { stockItem: { sku: sku.toString() } };
+    const page = pageOf(params, chronological(params));
     const client = this.database.client();
     const [rows, total] = await Promise.all([
-      client.stockMovement.findMany({ where, ...historyPage(params) }),
+      client.stockMovement.findMany({ where, ...page }),
       client.stockMovement.count({ where }),
     ]);
     return SearchResult.create({ items: rows.map(toMovement), total, params });

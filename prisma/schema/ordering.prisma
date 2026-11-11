@@ -10,3 +10,38 @@ model Coupon {
 
   @@map("coupons")
 }
+
+enum OrderStatus {
+  DRAFT
+  PLACED
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+/// `coupon` é a cópia do cupom no momento em que foi aplicado (D19), e não uma chave para `coupons`.
+model Order {
+  id         String      @id @db.Uuid
+  customerId String      @map("customer_id") @db.Uuid
+  status     OrderStatus
+  coupon     Json?
+  createdAt  DateTime    @map("created_at")
+  items      OrderItem[]
+
+  @@index([customerId, createdAt])
+  @@map("orders")
+}
+
+/// `position` guarda a ordem em que os itens entraram no pedido.
+model OrderItem {
+  orderId          String @map("order_id") @db.Uuid
+  position         Int
+  sku              String @db.VarChar(20)
+  unitPriceInCents Int    @map("unit_price_in_cents")
+  quantity         Int
+  order            Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@id([orderId, position])
+  @@unique([orderId, sku])
+  @@map("order_items")
+}
