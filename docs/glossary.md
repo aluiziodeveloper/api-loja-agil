@@ -40,23 +40,27 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Estoque (`inventory`)
 
-| Termo do negócio        | Código                                       | Definição                                                                  |
-| ----------------------- | -------------------------------------------- | -------------------------------------------------------------------------- |
-| Item de estoque         | `StockItem`                                  | Saldo de um SKU no depósito; um por SKU                                    |
-| Quantidade de estoque   | `StockQuantity`                              | Unidades inteiras, nunca negativas                                         |
-| Nível de estoque        | `StockLevel`                                 | Físico e reservado; garante que o reservado nunca passa do físico (RN07)   |
-| Estoque físico          | `onHand`                                     | Quantidade que existe no depósito                                          |
-| Reserva                 | `reserve()` / `reserved`                     | Quantidade separada para pedidos confirmados e ainda não pagos             |
-| Liberação               | `release()`                                  | Devolve ao disponível uma quantidade reservada (pedido cancelado)          |
-| Disponível              | `available()`                                | `onHand − reserved`; o que ainda pode ser vendido                          |
-| Baixa                   | `commit()`                                   | Saída definitiva do estoque quando o pedido é pago                         |
-| Entrada                 | `receive()` / `ReceiveStockUseCase`          | Chegada de mercadoria; a primeira entrada de um SKU cria o item            |
-| Ajuste de inventário    | `adjust()` / `AdjustStockUseCase`            | Substitui o físico pela contagem; exige motivo (`AdjustmentReason`)        |
-| Movimentação            | `StockMovement`                              | Registro imutável de cada mudança: tipo, variações, motivo e horário       |
-| Estoque mínimo          | `minimumLevel` / `ChangeMinimumLevelUseCase` | Abaixo dele a loja é alertada                                              |
-| Alerta de estoque baixo | `LowStockDetected`                           | Evento registrado quando uma movimentação faz o disponível cruzar o mínimo |
-| Consultar estoque       | `GetStockLevelUseCase`                       | Físico, reservado, disponível, mínimo e se está abaixo dele                |
-| Histórico               | `ListStockMovementsUseCase`                  | Movimentações de um SKU, paginadas, em ordem cronológica                   |
+| Termo do negócio        | Código                                       | Definição                                                                                            |
+| ----------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Item de estoque         | `StockItem`                                  | Saldo de um SKU no depósito; um por SKU                                                              |
+| Quantidade de estoque   | `StockQuantity`                              | Unidades inteiras, nunca negativas                                                                   |
+| Nível de estoque        | `StockLevel`                                 | Físico e reservado; garante que o reservado nunca passa do físico (RN07)                             |
+| Estoque físico          | `onHand`                                     | Quantidade que existe no depósito                                                                    |
+| Reserva                 | `reserve()` / `reserved`                     | Quantidade separada para pedidos confirmados e ainda não pagos                                       |
+| Liberação               | `release()`                                  | Devolve ao disponível uma quantidade reservada (pedido cancelado)                                    |
+| Disponível              | `available()`                                | `onHand − reserved`; o que ainda pode ser vendido                                                    |
+| Baixa                   | `commit()`                                   | Saída definitiva do estoque quando o pedido é pago                                                   |
+| Entrada                 | `receive()` / `ReceiveStockUseCase`          | Chegada de mercadoria; a primeira entrada de um SKU cria o item                                      |
+| Ajuste de inventário    | `adjust()` / `AdjustStockUseCase`            | Substitui o físico pela contagem; exige motivo (`AdjustmentReason`)                                  |
+| Movimentação            | `StockMovement`                              | Registro imutável de cada mudança: tipo, variações, motivo e horário                                 |
+| Estoque mínimo          | `minimumLevel` / `ChangeMinimumLevelUseCase` | Abaixo dele a loja é alertada                                                                        |
+| Alerta de estoque baixo | `LowStockDetected`                           | Evento registrado quando uma movimentação faz o disponível cruzar o mínimo                           |
+| Consultar estoque       | `GetStockLevelUseCase`                       | Físico, reservado, disponível, mínimo e se está abaixo dele                                          |
+| Histórico               | `ListStockMovementsUseCase`                  | Movimentações de um SKU, paginadas, em ordem cronológica                                             |
+| Reserva do pedido       | `ReserveStockForOrderHandler`                | Ao confirmar um pedido, reserva todos os itens ou nenhum (RN12)                                      |
+| Falta de estoque        | `StockShortageError`                         | Itens do pedido além do disponível, todos listados de uma vez; SKU sem estoque conta como zero       |
+| Baixa do pedido         | `CommitStockForOrderHandler`                 | Ao pagar, as reservas viram baixa (RN13)                                                             |
+| Devolução ao estoque    | `ReturnStockForCancelledOrderHandler`        | Ao cancelar: pedido confirmado libera a reserva; pedido pago devolve as unidades como entrada (RN13) |
 
 ## Pedidos (`ordering`)
 
@@ -80,3 +84,16 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 | Subtotal, desconto, total | `prices()`                        | Soma dos itens, desconto do cupom (zero se deixou de valer) e a diferença |
 | Catálogo de produtos      | `ProductCatalog`                  | Porta para o Catálogo: preço e se o produto está ativo (RN06)             |
 | Meus pedidos              | `ListCustomerOrdersUseCase`       | Pedidos de um cliente, paginados, os mais recentes primeiro               |
+
+## Integração entre contextos (`integration` e `shared`)
+
+| Termo                | Código                     | Definição                                                                                           |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
+| Evento de domínio    | `DomainEvent`              | Fato do negócio, no passado, registrado por um agregado                                             |
+| Publicar eventos     | `EventPublisher.publish()` | Entregar os eventos de uma operação a quem os ouve, sem saber quem é                                |
+| Dispatcher           | `EventDispatcher`          | Entrega cada evento aos handlers inscritos no nome dele, um de cada vez; o primeiro erro interrompe |
+| Handler              | `EventHandler`             | A reação de um contexto a um evento                                                                 |
+| Mensagem             | `OrderLinesMessage`        | Um evento de outro contexto como quem o recebe o lê: só os campos que usa                           |
+| Transação            | `Transaction`              | Tudo o que a operação gravou fica gravado junto, ou nada fica                                       |
+| Camada anticorrupção | `ProductCatalogAdapter`    | Traduz o modelo de um contexto para a linguagem de quem o consome                                   |
+| Camada de integração | `src/integration`          | Liga os contextos (adaptadores e inscrições); conhece todos, e nenhum a conhece                     |

@@ -39,6 +39,7 @@ src/
     domain/          entidades, value objects, eventos (TypeScript puro)
     application/     casos de uso e portas
     infrastructure/  NestJS, banco de dados, HTTP
+  integration/ liga os contextos: adaptadores e inscrições nos eventos (ADR 0011)
 katas/         exercícios do curso, fora do build
 ```
 

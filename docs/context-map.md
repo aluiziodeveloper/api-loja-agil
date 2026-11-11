@@ -8,16 +8,15 @@ flowchart LR
   ordering["Pedidos<br/>(ordering)"]
 
   identity -- "customerId (upstream)" --> ordering
-  catalog -- "snapshot de SKU e preço (upstream)" --> ordering
-  ordering -- "OrderPlaced / OrderCancelled / OrderPaid" --> inventory
-  inventory -- "StockReserved / StockReservationFailed" --> ordering
-  catalog -- "ProductCreated (SKU)" --> inventory
+  catalog -- "SKU, preço e se está ativo (upstream)" --> ordering
+  ordering -- "OrderPlaced / OrderPaid / OrderCancelled" --> inventory
 ```
 
-| Relação              | Tipo                                       | Como se integra                                                                                    |
-| -------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Identidade → Pedidos | Upstream/Downstream                        | Pedidos guarda apenas o `customerId`; nunca acessa a entidade `User`                               |
-| Catálogo → Pedidos   | Upstream/Downstream (Anticorruption Layer) | Pedidos consulta o catálogo por uma porta (`ProductCatalog`) e copia SKU e preço para o item       |
-| Pedidos ↔ Estoque    | Parceria por eventos de domínio            | Estoque reage a eventos de pedido e publica o resultado da reserva                                 |
-| Catálogo → Estoque   | Upstream/Downstream                        | Ao criar um produto, o estoque cria o `StockItem` correspondente com saldo zero                    |
-| `shared`             | Shared Kernel                              | Blocos de construção comuns (`Entity`, `ValueObject`, `DomainError`…); não conhece nenhum contexto |
+| Relação              | Tipo                                       | Como se integra                                                                                                                                  |
+| -------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identidade → Pedidos | Upstream/Downstream                        | Pedidos guarda apenas o `customerId`; nunca acessa a entidade `User`                                                                             |
+| Catálogo → Pedidos   | Upstream/Downstream (Anticorruption Layer) | Pedidos consulta o catálogo pela porta `ProductCatalog`; o `ProductCatalogAdapter`, em `src/integration`, traduz o `Product` e o preço é copiado |
+| Pedidos → Estoque    | Upstream/Downstream por eventos de domínio | O Estoque reage aos eventos de pedido na mesma transação (ADR 0011): reserva tudo ou nada, dá baixa e devolve                                    |
+| Catálogo e Estoque   | Sem integração direta                      | O item de estoque nasce na primeira entrada do SKU; um SKU sem estoque conta como zero unidades na reserva                                       |
+| `shared`             | Shared Kernel                              | Blocos de construção comuns (`Entity`, `ValueObject`, `DomainError`, `EventDispatcher`…); não conhece nenhum contexto                            |
+| `integration`        | Camada de integração                       | Liga os contextos: adaptadores e inscrições nos eventos. Conhece os contextos; nenhum deles a conhece                                            |
