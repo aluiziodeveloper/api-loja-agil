@@ -21,6 +21,8 @@ export default defineConfig({
         'src/**/infrastructure/persistence/**',
         // Contratos sem comportamento: classes abstratas que só servem de token.
         'src/**/application/ports/**',
+        'src/shared/application/transaction.ts',
+        'src/shared/application/events/event-publisher.ts',
         // Medidos pelos testes end-to-end, pelo HTTP (vitest.config.e2e.ts).
         'src/**/infrastructure/http/**/*.controller.ts',
       ],

@@ -39,5 +39,7 @@ import { PrismaProductRepository } from './infrastructure/persistence/prisma-pro
     provideUseCase(ActivateProductUseCase, [ProductRepository]),
     provideUseCase(DeactivateProductUseCase, [ProductRepository]),
   ],
+  // A camada de integração precisa do repositório para ligar os contextos.
+  exports: [ProductRepository],
 })
 export class CatalogModule {}
