@@ -1,7 +1,9 @@
 import type { UseCase } from '../../../shared/application/use-case.js';
-import { changeOrder } from '../change-order.js';
 import type { OrderOutput } from '../order-output.js';
-import type { OrderRepository } from '../ports/order.repository.js';
+import {
+  transitionOrder,
+  type OrderLifecycleDeps,
+} from '../transition-order.js';
 
 export type PlaceOrderInput = {
   orderId: string;
@@ -11,9 +13,9 @@ export class PlaceOrderUseCase implements UseCase<
   PlaceOrderInput,
   OrderOutput
 > {
-  constructor(private readonly orders: OrderRepository) {}
+  constructor(private readonly deps: OrderLifecycleDeps) {}
 
   async execute(input: PlaceOrderInput): Promise<OrderOutput> {
-    return changeOrder(this.orders, input.orderId, (order) => order.place());
+    return transitionOrder(this.deps, input.orderId, (order) => order.place());
   }
 }

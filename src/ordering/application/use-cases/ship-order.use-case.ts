@@ -1,16 +1,18 @@
 import type { UseCase } from '../../../shared/application/use-case.js';
-import { changeOrder } from '../change-order.js';
 import type { OrderOutput } from '../order-output.js';
-import type { OrderRepository } from '../ports/order.repository.js';
+import {
+  transitionOrder,
+  type OrderLifecycleDeps,
+} from '../transition-order.js';
 
 export type ShipOrderInput = {
   orderId: string;
 };
 
 export class ShipOrderUseCase implements UseCase<ShipOrderInput, OrderOutput> {
-  constructor(private readonly orders: OrderRepository) {}
+  constructor(private readonly deps: OrderLifecycleDeps) {}
 
   async execute(input: ShipOrderInput): Promise<OrderOutput> {
-    return changeOrder(this.orders, input.orderId, (order) => order.ship());
+    return transitionOrder(this.deps, input.orderId, (order) => order.ship());
   }
 }

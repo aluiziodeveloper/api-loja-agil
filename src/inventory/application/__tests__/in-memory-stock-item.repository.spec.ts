@@ -38,6 +38,23 @@ describe('InMemoryStockItemRepository', () => {
     expect(afterSave?.toSnapshot().onHand).toBe(15);
   });
 
+  it('should go back to a checkpoint, history included', async () => {
+    const stock = aStockItem().withSku('CAN001').withOnHand(10).build();
+    await stockItems.save(stock);
+    const rollback = stockItems.checkpoint();
+    stock.reserve(StockQuantity.of(4));
+    await stockItems.save(stock);
+
+    rollback();
+
+    expect((await stockItems.findBySku(MUG))?.toSnapshot().reserved).toBe(0);
+    const history = await stockItems.findMovements(
+      MUG,
+      movementSearchParams({}),
+    );
+    expect(history.toOutput().total).toBe(0);
+  });
+
   it('should append the pending movements when saving, only once', async () => {
     const stock = aStockItem().withSku('CAN001').build();
     stock.receive(StockQuantity.of(5));
