@@ -1,27 +1,9 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
 
 describe('POST /users (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
-  let database: PrismaDatabase;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-    database = app.get(PrismaDatabase);
-  });
-
-  beforeEach(async () => {
-    await resetDatabase(database);
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const e2e = useTestApp();
+  const api = e2e.api;
 
   const signUp = (payload: object) => api.post('/users', payload);
 
@@ -50,7 +32,8 @@ describe('POST /users (e2e)', () => {
       password: 'caneca123',
     });
 
-    const user = await database
+    const user = await e2e.app
+      .get(PrismaDatabase)
       .client()
       .user.findUniqueOrThrow({ where: { email: 'ana@loja.dev' } });
     expect(user.passwordHash).toMatch(/^scrypt\$/);

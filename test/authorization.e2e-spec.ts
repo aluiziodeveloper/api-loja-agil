@@ -1,33 +1,15 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaDatabase } from '../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { customer, OPERATOR } from './setup/auth.js';
-import { createTestApp } from './setup/create-test-app.js';
-import { dataOf, TestClient } from './setup/test-client.js';
+import { useTestApp } from './setup/e2e.js';
+import { dataOf } from './setup/test-client.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
 
 describe('Authorization by role (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
-  let operator: TestClient;
-  let ana: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-    operator = await TestClient.as(app, OPERATOR);
-    ana = await TestClient.as(app, customer(ANA));
-  });
-
-  beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const e2e = useTestApp();
+  const api = e2e.api;
+  const operator = e2e.as(OPERATOR);
+  const ana = e2e.as(customer(ANA));
 
   it.each([
     ['GET', '/users'],

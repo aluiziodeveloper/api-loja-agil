@@ -1,32 +1,20 @@
 import { JwtService } from '@nestjs/jwt';
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenUser } from '../setup/scenarios.js';
+import { dataOf } from '../setup/test-client.js';
 
 describe('POST /auth/sign-in (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
+  const e2e = useTestApp();
+  const api = e2e.api;
+
   let anaId: string;
 
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-  });
-
   beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-    const signUp = await api.post('/users', {
+    anaId = await givenUser(api, {
       name: 'Ana Souza',
       email: 'ana@loja.dev',
       password: 'caneca123',
     });
-    anaId = dataOf<{ id: string }>(signUp).id;
-  });
-
-  afterAll(async () => {
-    await app.close();
   });
 
   const signIn = (payload: object) => api.post('/auth/sign-in', payload);

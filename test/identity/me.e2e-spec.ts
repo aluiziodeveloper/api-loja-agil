@@ -1,22 +1,14 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenUser } from '../setup/scenarios.js';
+import { dataOf, type TestClient } from '../setup/test-client.js';
 
 describe('/me (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
+  const e2e = useTestApp();
+  const api = e2e.api;
   let ana: TestClient;
 
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-  });
-
   beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-    await api.post('/users', {
+    await givenUser(api, {
       name: 'Ana Souza',
       email: 'ana@loja.dev',
       password: 'caneca123',
@@ -24,19 +16,12 @@ describe('/me (e2e)', () => {
     ana = await signIn('caneca123');
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
   async function signIn(password: string): Promise<TestClient> {
     const response = await api.post('/auth/sign-in', {
       email: 'ana@loja.dev',
       password,
     });
-    return TestClient.bearer(
-      app,
-      dataOf<{ accessToken: string }>(response).accessToken,
-    );
+    return e2e.bearer(dataOf<{ accessToken: string }>(response).accessToken);
   }
 
   const me = () => ana.get('/me');

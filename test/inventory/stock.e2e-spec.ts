@@ -1,26 +1,9 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { OPERATOR } from '../setup/auth.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
 
 describe('Stock (e2e)', () => {
-  let app: NestFastifyApplication;
-  let operator: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    operator = await TestClient.as(app, OPERATOR);
-  });
-
-  beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const e2e = useTestApp();
+  const operator = e2e.as(OPERATOR);
 
   const receive = (quantity: number) =>
     operator.post('/stock/CAN001/receipts', { quantity });
