@@ -1,0 +1,9 @@
+// Um arquivo por bounded context nesta pasta; este guarda só a configuração.
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
