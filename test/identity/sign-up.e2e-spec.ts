@@ -52,4 +52,30 @@ describe('POST /users (e2e)', () => {
     expect(user.passwordHash).toMatch(/^scrypt\$/);
     expect(user.passwordHash).not.toContain('caneca123');
   });
+
+  it('should ignore fields the client must not choose', async () => {
+    const response = await signUp({
+      name: 'Ana Souza',
+      email: 'ana@loja.dev',
+      password: 'caneca123',
+      role: 'OPERATOR',
+    });
+
+    expect(response.json()).toMatchObject({ role: 'CUSTOMER' });
+  });
+
+  it('should answer 400 listing the fields that are missing or of another type', async () => {
+    const response = await signUp({ name: 123, password: true });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      code: 'VALIDATION_FAILED',
+      message: 'A requisição tem campos inválidos.',
+      details: [
+        { path: 'name', message: expect.any(String) },
+        { path: 'email', message: expect.any(String) },
+        { path: 'password', message: expect.any(String) },
+      ],
+    });
+  });
 });
