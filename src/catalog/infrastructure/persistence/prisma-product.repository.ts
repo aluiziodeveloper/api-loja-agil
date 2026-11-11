@@ -2,6 +2,7 @@ import type { Prisma } from '../../../generated/prisma/client.js';
 import { SearchResult } from '../../../shared/application/search/search-result.js';
 import type { Sku } from '../../../shared/domain/sku.value-object.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
+import { pageOf } from '../../../shared/infrastructure/database/page-of.js';
 import type { PrismaDatabase } from '../../../shared/infrastructure/database/prisma-database.js';
 import type { ProductRepository } from '../../application/ports/product.repository.js';
 import type {
@@ -35,16 +36,10 @@ function whereFor({
   };
 }
 
-/** A página pedida, ordenada pelo campo pedido e desempatada pelo id (D17). */
-function pageOf(params: ProductSearchParams) {
-  return {
-    orderBy: [
-      { [SORT_COLUMNS[params.sort()]]: params.sortDirection() },
-      { id: 'asc' as const },
-    ],
-    skip: params.offset(),
-    take: params.perPage(),
-  };
+/** O campo pedido e, no empate, o id (D17). */
+function sortedBy(params: ProductSearchParams) {
+  const column = SORT_COLUMNS[params.sort()];
+  return [{ [column]: params.sortDirection() }, { id: 'asc' as const }];
 }
 
 export class PrismaProductRepository implements ProductRepository {
@@ -76,16 +71,15 @@ export class PrismaProductRepository implements ProductRepository {
   async search(
     criteria: ProductSearchCriteria,
   ): Promise<SearchResult<Product>> {
+    const { params } = criteria;
     const where = whereFor(criteria);
+    const page = pageOf(params, sortedBy(params));
     const client = this.database.client();
     const [rows, total] = await Promise.all([
-      client.product.findMany({ where, ...pageOf(criteria.params) }),
+      client.product.findMany({ where, ...page }),
       client.product.count({ where }),
     ]);
-    return SearchResult.create({
-      items: rows.map((row) => Product.restore(row)),
-      total,
-      params: criteria.params,
-    });
+    const items = rows.map((row) => Product.restore(row));
+    return SearchResult.create({ items, total, params });
   }
 }
