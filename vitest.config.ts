@@ -15,6 +15,9 @@ export default defineConfig({
         '**/*.spec.ts',
         'src/**/*.module.ts',
         'src/main.ts',
+        // Medida pelos testes de integração, contra o banco (vitest.config.int.ts).
+        'src/**/infrastructure/database/**',
+        'src/**/infrastructure/persistence/**',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {
