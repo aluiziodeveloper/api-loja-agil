@@ -12,6 +12,8 @@ export type IssuedToken = {
   expiresInSeconds: number;
 };
 
+type Claims = { sub: string; role: string };
+
 type AccessTokensOptions = {
   secret: string;
   expiresInSeconds: number;
@@ -38,5 +40,15 @@ export class AccessTokens {
       tokenType: 'Bearer',
       expiresInSeconds: this.options.expiresInSeconds,
     };
+  }
+
+  /** Assinatura, formato e validade conferidos; qualquer falha é `null`, sem explicar por quê. */
+  async verify(token: string): Promise<Principal | null> {
+    try {
+      const { sub, role } = await this.jwt.verifyAsync<Claims>(token);
+      return { userId: sub, role };
+    } catch {
+      return null;
+    }
   }
 }

@@ -8,6 +8,7 @@ import { searchQuery } from '../../../shared/infrastructure/http/search-query.js
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SearchProductsUseCase } from '../../application/use-cases/search-products.use-case.js';
 import { presentProduct, type ProductResponse } from './product.presenter.js';
+import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 /** `?includeInactive=true` traz também os produtos desativados. */
 export const searchProductsQuery = searchQuery.extend({
@@ -23,6 +24,7 @@ export class SearchProductsController {
     private readonly searchProducts: SearchProductsUseCase,
   ) {}
 
+  @Public()
   @Get()
   async handle(
     @Query(new ZodValidationPipe(searchProductsQuery))

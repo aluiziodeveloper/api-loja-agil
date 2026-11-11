@@ -1,6 +1,7 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
+import { authAs, customer, OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
@@ -10,19 +11,27 @@ type OrderBody = { data: { id: string; status: string } };
 
 describe('Orders (e2e)', () => {
   let app: NestFastifyApplication;
+  let operator: { authorization: string };
+  let ana: { authorization: string };
+  let bruno: { authorization: string };
 
   beforeAll(async () => {
     app = await createTestApp();
+    operator = await authAs(app, OPERATOR);
+    ana = await authAs(app, customer(ANA));
+    bruno = await authAs(app, customer(BRUNO));
   });
 
   beforeEach(async () => {
     await resetDatabase(app.get(PrismaDatabase));
     await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/products',
       payload: { sku: 'CAN001', name: 'Caneca Ágil', priceInCents: 4590 },
     });
     await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/stock/CAN001/receipts',
       payload: { quantity: 3 },
@@ -33,18 +42,15 @@ describe('Orders (e2e)', () => {
     await app.close();
   });
 
-  const asCustomer = (customerId: string) => ({
-    'x-customer-id': customerId,
-  });
-
   async function draftWith(quantity: number): Promise<string> {
     const draft = await app.inject({
       method: 'POST',
       url: '/orders',
-      headers: asCustomer(ANA),
+      headers: ana,
     });
     const { id } = draft.json<OrderBody>().data;
     await app.inject({
+      headers: ana,
       method: 'POST',
       url: `/orders/${id}/items`,
       payload: { sku: 'CAN001', quantity },
@@ -53,10 +59,20 @@ describe('Orders (e2e)', () => {
   }
 
   const transition = (id: string, action: string) =>
-    app.inject({ method: 'POST', url: `/orders/${id}/${action}` });
+    app.inject({
+      headers: ana,
+      method: 'POST',
+      url: `/orders/${id}/${action}`,
+    });
 
   const stockOf = async (sku: string) =>
-    (await app.inject({ method: 'GET', url: `/stock/${sku}` })).json<{
+    (
+      await app.inject({
+        headers: operator,
+        method: 'GET',
+        url: `/stock/${sku}`,
+      })
+    ).json<{
       data: { onHand: number; reserved: number };
     }>().data;
 
@@ -64,7 +80,7 @@ describe('Orders (e2e)', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/orders',
-      headers: asCustomer(ANA),
+      headers: ana,
     });
 
     expect(response.statusCode).toBe(201);
@@ -73,14 +89,14 @@ describe('Orders (e2e)', () => {
     });
   });
 
-  it('should answer 401 when nobody says who the customer is', async () => {
+  it('should answer 401 without an access token', async () => {
     const response = await app.inject({ method: 'POST', url: '/orders' });
 
     expect(response.statusCode).toBe(401);
     expect(response.json()).toEqual({
       error: {
         code: 'UNAUTHORIZED',
-        message: 'Informe o cliente no header x-customer-id.',
+        message: 'Token de acesso ausente ou inválido.',
       },
     });
   });
@@ -88,7 +104,11 @@ describe('Orders (e2e)', () => {
   it('should add an item at the price of the catalog', async () => {
     const id = await draftWith(2);
 
-    const response = await app.inject({ method: 'GET', url: `/orders/${id}` });
+    const response = await app.inject({
+      headers: ana,
+      method: 'GET',
+      url: `/orders/${id}`,
+    });
 
     expect(response.json()).toMatchObject({
       data: {
@@ -130,7 +150,11 @@ describe('Orders (e2e)', () => {
         message: 'Estoque insuficiente: CAN001 (solicitado 5, disponível 3).',
       },
     });
-    const order = await app.inject({ method: 'GET', url: `/orders/${id}` });
+    const order = await app.inject({
+      headers: ana,
+      method: 'GET',
+      url: `/orders/${id}`,
+    });
     expect(order.json()).toMatchObject({ data: { status: 'DRAFT' } });
   });
 
@@ -162,6 +186,7 @@ describe('Orders (e2e)', () => {
     const id = await draftWith(1);
 
     const response = await app.inject({
+      headers: ana,
       method: 'DELETE',
       url: `/orders/${id}/items/CAN001`,
     });
@@ -176,13 +201,13 @@ describe('Orders (e2e)', () => {
     await app.inject({
       method: 'POST',
       url: '/orders',
-      headers: asCustomer(BRUNO),
+      headers: bruno,
     });
 
     const response = await app.inject({
       method: 'GET',
       url: '/orders',
-      headers: asCustomer(ANA),
+      headers: ana,
     });
 
     expect(

@@ -14,6 +14,7 @@ import {
   type AccessTokenResponse,
   presentAccessToken,
 } from './access-token.presenter.js';
+import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 export const signInBody = z.object({
   email: z.string(),
@@ -33,6 +34,7 @@ export class SignInController {
     @Inject(AccessTokens) private readonly accessTokens: AccessTokens,
   ) {}
 
+  @Public()
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
   async handle(

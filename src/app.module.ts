@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import {
+  APP_FILTER,
+  APP_GUARD,
+  APP_INTERCEPTOR,
+  Reflector,
+} from '@nestjs/core';
 import { appErrorStatus } from './app-error-status.js';
 import { CatalogModule } from './catalog/catalog.module.js';
 import { validateEnv } from './config/env.schema.js';
@@ -9,6 +14,8 @@ import { IdentityModule } from './identity/identity.module.js';
 import { IntegrationModule } from './integration/integration.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { OrderingModule } from './ordering/ordering.module.js';
+import { AccessTokens } from './shared/infrastructure/auth/access-tokens.js';
+import { AuthGuard } from './shared/infrastructure/auth/auth.guard.js';
 import { AuthModule } from './shared/infrastructure/auth/auth.module.js';
 import { DatabaseModule } from './shared/infrastructure/database/database.module.js';
 import { EnvelopeInterceptor } from './shared/infrastructure/http/envelope.interceptor.js';
@@ -37,6 +44,12 @@ import { ErrorResponseFilter } from './shared/infrastructure/http/error-response
       useFactory: () => new ErrorResponseFilter(appErrorStatus),
     },
     { provide: APP_INTERCEPTOR, useClass: EnvelopeInterceptor },
+    {
+      provide: APP_GUARD,
+      useFactory: (reflector: Reflector, accessTokens: AccessTokens) =>
+        new AuthGuard(reflector, accessTokens),
+      inject: [Reflector, AccessTokens],
+    },
   ],
 })
 export class AppModule {}

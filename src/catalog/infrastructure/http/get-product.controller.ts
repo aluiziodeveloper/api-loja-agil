@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
 import { GetProductUseCase } from '../../application/use-cases/get-product.use-case.js';
 import { presentProduct, type ProductResponse } from './product.presenter.js';
+import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 @Controller('products')
 export class GetProductController {
@@ -8,6 +9,7 @@ export class GetProductController {
     @Inject(GetProductUseCase) private readonly getProduct: GetProductUseCase,
   ) {}
 
+  @Public()
   @Get(':id')
   async handle(@Param('id') id: string): Promise<ProductResponse> {
     return presentProduct(await this.getProduct.execute({ productId: id }));

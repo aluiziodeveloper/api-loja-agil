@@ -1,15 +1,18 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
+import { authAs, OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
 
 type ProductBody = { data: { id: string; active: boolean } };
 
 describe('Products (e2e)', () => {
   let app: NestFastifyApplication;
+  let operator: { authorization: string };
 
   beforeAll(async () => {
     app = await createTestApp();
+    operator = await authAs(app, OPERATOR);
   });
 
   beforeEach(async () => {
@@ -23,7 +26,12 @@ describe('Products (e2e)', () => {
   const caneca = { sku: 'CAN001', name: 'Caneca Ágil', priceInCents: 4590 };
 
   const create = (payload: object = caneca) =>
-    app.inject({ method: 'POST', url: '/products', payload });
+    app.inject({
+      headers: operator,
+      method: 'POST',
+      url: '/products',
+      payload,
+    });
 
   async function createdId(): Promise<string> {
     return (await create()).json<ProductBody>().data.id;
@@ -64,6 +72,7 @@ describe('Products (e2e)', () => {
     const id = await createdId();
 
     const response = await app.inject({
+      headers: operator,
       method: 'GET',
       url: `/products/${id}`,
     });
@@ -75,6 +84,7 @@ describe('Products (e2e)', () => {
     const id = await createdId();
 
     const response = await app.inject({
+      headers: operator,
       method: 'PATCH',
       url: `/products/${id}`,
       payload: { priceInCents: 3990 },
@@ -90,10 +100,12 @@ describe('Products (e2e)', () => {
     const id = await createdId();
 
     const deactivated = await app.inject({
+      headers: operator,
       method: 'POST',
       url: `/products/${id}/deactivate`,
     });
     const activated = await app.inject({
+      headers: operator,
       method: 'POST',
       url: `/products/${id}/activate`,
     });
@@ -105,6 +117,7 @@ describe('Products (e2e)', () => {
 
   it('should answer 404 to a product nobody created', async () => {
     const response = await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/products/0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10/activate',
     });

@@ -43,4 +43,26 @@ describe('AccessTokens', () => {
 
     expect(header).toMatchObject({ header: { alg: 'HS256' } });
   });
+
+  it('should tell who the user is from a token it issued', async () => {
+    const { accessToken } = await tokens.issue(ana);
+
+    await expect(tokens.verify(accessToken)).resolves.toEqual(ana);
+  });
+
+  it.each([
+    [
+      'signed with another secret',
+      () =>
+        new AccessTokens({
+          secret: 'another-secret-with-more-than-32-chars',
+          expiresInSeconds: 900,
+        })
+          .issue(ana)
+          .then(({ accessToken }) => accessToken),
+    ],
+    ['that is not a JWT', () => Promise.resolve('not-a-token')],
+  ])('should not trust a token %s', async (_, tokenOf) => {
+    await expect(tokens.verify(await tokenOf())).resolves.toBeNull();
+  });
 });

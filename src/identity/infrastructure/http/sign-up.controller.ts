@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SignUpUseCase } from '../../application/use-cases/sign-up.use-case.js';
 import { presentUser, type UserResponse } from './user.presenter.js';
+import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 /** Só o formato: tamanho da senha e e-mail válido são regras do domínio. */
 export const signUpBody = z.object({
@@ -19,6 +20,7 @@ export class SignUpController {
   /** `@Inject` explícito: o token não depende do metadado gerado pelo compilador. */
   constructor(@Inject(SignUpUseCase) private readonly signUp: SignUpUseCase) {}
 
+  @Public()
   @Post()
   async handle(
     @Body(new ZodValidationPipe(signUpBody)) body: SignUpBody,

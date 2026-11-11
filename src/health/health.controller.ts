@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { Public } from '../shared/infrastructure/auth/public.decorator.js';
 
 export type HealthStatus = {
   status: 'ok';
@@ -7,6 +8,7 @@ export type HealthStatus = {
 
 @Controller('health')
 export class HealthController {
+  @Public()
   @Get()
   check(): HealthStatus {
     return {
