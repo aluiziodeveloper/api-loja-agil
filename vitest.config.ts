@@ -13,6 +13,7 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/generated/**',
         '**/*.spec.ts',
+        '**/*.int-spec.ts',
         'src/**/*.module.ts',
         'src/main.ts',
         // Medida pelos testes de integração, contra o banco (vitest.config.int.ts).
