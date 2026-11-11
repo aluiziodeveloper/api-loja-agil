@@ -1,11 +1,19 @@
 import { Body, Controller, Inject, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case.js';
-import { presentUser, type UserResponse } from './user.presenter.js';
+import {
+  userResponse,
+  presentUser,
+  type UserResponse,
+} from './user.presenter.js';
 
 /** `strict`: um `role` no corpo é recusado, não ignorado em silêncio. */
 export const updateMeBody = z
@@ -26,6 +34,8 @@ export class UpdateMeController {
   ) {}
 
   @Patch()
+  @ApiBodyOf(updateMeBody)
+  @ApiData(userResponse)
   async handle(
     @CurrentPrincipal() me: Principal,
     @Body(new ZodValidationPipe(updateMeBody)) body: UpdateMeBody,

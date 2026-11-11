@@ -7,11 +7,16 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { AccessTokens } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SignInUseCase } from '../../application/use-cases/sign-in.use-case.js';
 import {
+  accessTokenResponse,
   type AccessTokenResponse,
   presentAccessToken,
 } from './access-token.presenter.js';
@@ -38,6 +43,8 @@ export class SignInController {
 
   @Public()
   @Post('sign-in')
+  @ApiBodyOf(signInBody)
+  @ApiData(accessTokenResponse)
   @HttpCode(HttpStatus.OK)
   async handle(
     @Body(new ZodValidationPipe(signInBody)) body: SignInBody,

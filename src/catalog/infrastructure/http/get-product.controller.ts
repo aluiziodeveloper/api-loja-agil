@@ -1,7 +1,12 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { GetProductUseCase } from '../../application/use-cases/get-product.use-case.js';
-import { presentProduct, type ProductResponse } from './product.presenter.js';
+import {
+  productResponse,
+  presentProduct,
+  type ProductResponse,
+} from './product.presenter.js';
 import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 @ApiTags('Catálogo')
@@ -13,6 +18,7 @@ export class GetProductController {
 
   @Public()
   @Get(':id')
+  @ApiData(productResponse)
   async handle(@Param('id') id: string): Promise<ProductResponse> {
     return presentProduct(await this.getProduct.execute({ productId: id }));
   }

@@ -1,17 +1,22 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { z } from 'zod';
 import { Public } from '../shared/infrastructure/auth/public.decorator.js';
+import { ApiData } from '../shared/infrastructure/openapi/api-docs.decorators.js';
 
-export type HealthStatus = {
-  status: 'ok';
-  uptimeInSeconds: number;
-};
+export const healthStatus = z.object({
+  status: z.literal('ok'),
+  uptimeInSeconds: z.number().int(),
+});
+
+export type HealthStatus = z.infer<typeof healthStatus>;
 
 @ApiTags('Saúde')
 @Controller('health')
 export class HealthController {
   @Public()
   @Get()
+  @ApiData(healthStatus)
   check(): HealthStatus {
     return {
       status: 'ok',

@@ -1,5 +1,9 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiPage,
+  ApiQueryOf,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import type { z } from 'zod';
 import {
   type Page,
@@ -9,7 +13,11 @@ import { searchQuery } from '../../../shared/infrastructure/http/search-query.js
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ListCustomerOrdersUseCase } from '../../application/use-cases/list-customer-orders.use-case.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
-import { type OrderResponse, presentOrder } from './order.presenter.js';
+import {
+  orderResponse,
+  type OrderResponse,
+  presentOrder,
+} from './order.presenter.js';
 
 /** Os pedidos de quem pede, os mais recentes primeiro. */
 export const listCustomerOrdersQuery = searchQuery.pick({
@@ -29,6 +37,8 @@ export class ListCustomerOrdersController {
   ) {}
 
   @Get()
+  @ApiQueryOf(listCustomerOrdersQuery)
+  @ApiPage(orderResponse)
   async handle(
     @CurrentCustomer() customerId: string,
     @Query(new ZodValidationPipe(listCustomerOrdersQuery))

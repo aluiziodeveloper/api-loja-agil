@@ -1,5 +1,9 @@
 import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiPage,
+  ApiQueryOf,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import type { z } from 'zod';
 import {
   type Page,
@@ -8,7 +12,11 @@ import {
 import { searchQuery } from '../../../shared/infrastructure/http/search-query.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ListStockMovementsUseCase } from '../../application/use-cases/list-stock-movements.use-case.js';
-import { type MovementResponse, presentMovement } from './stock.presenter.js';
+import {
+  movementResponse,
+  type MovementResponse,
+  presentMovement,
+} from './stock.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
@@ -30,6 +38,8 @@ export class ListStockMovementsController {
   ) {}
 
   @Get(':sku/movements')
+  @ApiQueryOf(listStockMovementsQuery)
+  @ApiPage(movementResponse)
   @Roles(OPERATOR)
   async handle(
     @Param('sku') sku: string,

@@ -1,8 +1,13 @@
-import { Controller, Inject, Post } from '@nestjs/common';
+import { Controller, Inject, Post, HttpStatus } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { CreateDraftOrderUseCase } from '../../application/use-cases/create-draft-order.use-case.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
-import { type OrderResponse, presentOrder } from './order.presenter.js';
+import {
+  orderResponse,
+  type OrderResponse,
+  presentOrder,
+} from './order.presenter.js';
 
 /** O dono do pedido vem de quem pede, nunca do corpo da requisição. */
 @ApiTags('Pedidos')
@@ -14,6 +19,7 @@ export class CreateDraftOrderController {
   ) {}
 
   @Post()
+  @ApiData(orderResponse, HttpStatus.CREATED)
   async handle(@CurrentCustomer() customerId: string): Promise<OrderResponse> {
     return presentOrder(await this.createDraftOrder.execute({ customerId }));
   }

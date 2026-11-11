@@ -28,6 +28,7 @@ export default defineConfig({
         // Medidos pelos testes end-to-end, pelo HTTP (vitest.config.e2e.ts).
         'src/**/infrastructure/http/**/*.controller.ts',
         'src/shared/infrastructure/openapi/open-api.ts',
+        'src/shared/infrastructure/openapi/api-docs.decorators.ts',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {

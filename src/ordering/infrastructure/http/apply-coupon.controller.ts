@@ -1,9 +1,17 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case.js';
-import { type OrderResponse, presentOrder } from './order.presenter.js';
+import {
+  orderResponse,
+  type OrderResponse,
+  presentOrder,
+} from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 export const applyCouponBody = z.object({ code: z.string() });
@@ -20,6 +28,8 @@ export class ApplyCouponController {
   ) {}
 
   @Put(':id/coupon')
+  @ApiBodyOf(applyCouponBody)
+  @ApiData(orderResponse)
   async handle(
     @CurrentCustomer() customerId: string,
     @Param('id') id: string,
