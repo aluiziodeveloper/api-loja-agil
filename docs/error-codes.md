@@ -1,7 +1,9 @@
 # Códigos de erro da API
 
 Cada erro de domínio tem um `code` estável (ADR 0003). Clientes da API devem decidir pelo `code`, nunca pela mensagem, que pode mudar.
-O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a proposta atual.
+O status HTTP é definido na infraestrutura: cada contexto declara o seu mapa (`<contexto>/infrastructure/http/*-error-status.ts`), e o teste `src/app-error-status.spec.ts` confere que ele é igual a esta tabela.
+
+Toda resposta de erro tem o formato `{ "error": { "code": "...", "message": "..." } }`.
 
 ## Shared Kernel
 
@@ -67,4 +69,12 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 | `COUPON_NOT_FOUND`         | `CouponNotFoundError`         | Código de cupom inexistente                      | 404  |
 | `COUPON_CODE_IN_USE`       | `CouponCodeInUseError`        | Cadastro de cupom com código repetido            | 409  |
 
-Ao criar um erro de domínio, acrescente uma linha aqui no mesmo pull request.
+## Borda HTTP
+
+Erros que não vêm do domínio:
+
+- `VALIDATION_FAILED` (400): a requisição não tem o formato esperado; `details` lista cada campo, com `path` e `message`.
+- `INTERNAL_ERROR` (500): falha inesperada. A mensagem e a pilha vão para o log, nunca para o cliente.
+- Os demais erros HTTP usam o nome do status como código, como `NOT_FOUND` para uma rota inexistente.
+
+Ao criar um erro de domínio, acrescente uma linha aqui e no mapa do contexto, no mesmo pull request.
