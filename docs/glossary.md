@@ -97,3 +97,16 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 | Transação            | `Transaction`              | Tudo o que a operação gravou fica gravado junto, ou nada fica                                       |
 | Camada anticorrupção | `ProductCatalogAdapter`    | Traduz o modelo de um contexto para a linguagem de quem o consome                                   |
 | Camada de integração | `src/integration`          | Liga os contextos (adaptadores e inscrições); conhece todos, e nenhum a conhece                     |
+
+## Persistência (`infrastructure/persistence` e `shared/infrastructure/database`)
+
+| Termo                   | Código                    | Definição                                                                                   |
+| ----------------------- | ------------------------- | ------------------------------------------------------------------------------------------- |
+| Repositório             | `PrismaOrderRepository`   | Implementação de uma porta de repositório: traduz agregados em linhas e linhas em agregados |
+| Contrato do repositório | `orderRepositoryContract` | Os testes que toda implementação de uma porta precisa passar, o fake e a do banco           |
+| Mapper                  | `order-row.mapper.ts`     | Traduz o snapshot de um agregado para as colunas do banco, e de volta                       |
+| Migration               | `prisma/migrations`       | Uma mudança no schema do banco, versionada e aplicada em ordem                              |
+| Banco de testes         | `loja_agil_test`          | O banco dos testes de integração, zerado antes de cada teste                                |
+| Transação em curso      | `PrismaDatabase.client()` | O client da transação aberta por `run`, ou o principal fora dela                            |
+| Versão                  | `version`                 | Quantas vezes o item de estoque foi gravado; base do travamento otimista                    |
+| Travamento otimista     | `ConcurrentUpdateError`   | Grava só se ninguém gravou depois da leitura; quem perde a corrida tenta de novo            |
