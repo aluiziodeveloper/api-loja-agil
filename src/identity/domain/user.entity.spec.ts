@@ -127,4 +127,26 @@ describe('User', () => {
       expect(authenticated).toBe(false);
     });
   });
+
+  describe('promoteToOperator', () => {
+    it('should make the user an operator, keeping everything else', () => {
+      const user = registerAna();
+
+      user.promoteToOperator();
+
+      expect(user.toSnapshot()).toMatchObject({
+        name: 'Ana Silva',
+        role: Role.OPERATOR,
+      });
+    });
+
+    it('should leave an operator as an operator', () => {
+      const user = registerAna();
+      user.promoteToOperator();
+
+      user.promoteToOperator();
+
+      expect(user.toSnapshot().role).toBe(Role.OPERATOR);
+    });
+  });
 });

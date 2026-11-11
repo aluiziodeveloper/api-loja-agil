@@ -1,9 +1,14 @@
+import { OPERATOR } from '../../shared/infrastructure/auth/roles.js';
 import { InvalidRoleError } from './invalid-role.error.js';
 import { Role, parseRole } from './role.js';
 
 describe('Role', () => {
   it('should define the CUSTOMER and OPERATOR roles', () => {
     expect(Object.values(Role)).toEqual(['CUSTOMER', 'OPERATOR']);
+  });
+
+  it('should be the operator role the authorization checks', () => {
+    expect(Role.OPERATOR).toBe(OPERATOR);
   });
 
   it.each(['CUSTOMER', 'OPERATOR'])('should parse the role %s', (value) => {

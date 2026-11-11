@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case.js';
 import { presentProduct, type ProductResponse } from './product.presenter.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
+import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
 /** Inteiro, positivo, formato do SKU: tudo isso é do `Money` e do `Sku`. */
 export const createProductBody = z.object({
@@ -21,6 +23,7 @@ export class CreateProductController {
   ) {}
 
   @Post()
+  @Roles(OPERATOR)
   async handle(
     @Body(new ZodValidationPipe(createProductBody)) body: CreateProductBody,
   ): Promise<ProductResponse> {

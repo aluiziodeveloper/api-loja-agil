@@ -45,13 +45,15 @@ Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" 
 
 | Contexto   | Rotas                                                                                                                                                                                                                    |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Identidade | `POST /users`, `GET /users`, `GET /users/:id`                                                                                                                                                                            |
+| Identidade | `POST /users`, `POST /auth/sign-in`, `GET /users`, `GET /users/:id`, `POST /operators`                                                                                                                                   |
 | Catálogo   | `POST /products`, `GET /products`, `GET /products/:id`, `PATCH /products/:id`, `POST /products/:id/activate`, `POST /products/:id/deactivate`                                                                            |
 | Estoque    | `GET /stock/:sku`, `POST /stock/:sku/receipts`, `POST /stock/:sku/adjustments`, `PUT /stock/:sku/minimum-level`, `GET /stock/:sku/movements`                                                                             |
 | Pedidos    | `POST /orders`, `GET /orders`, `GET /orders/:id`, `POST /orders/:id/items`, `DELETE /orders/:id/items/:sku`, `PUT /orders/:id/coupon`, `DELETE /orders/:id/coupon`, `POST /orders/:id/place`, `/pay`, `/ship`, `/cancel` |
 | Cupons     | `POST /coupons`                                                                                                                                                                                                          |
 
-As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort`, `filter` e `includeInactive`. Até o módulo 12, as rotas de pedidos pedem o header provisório `x-customer-id`.
+O primeiro operador é promovido no servidor, com `npm run build && npm run operator:promote -- <email>`; depois, um operador promove outro por `POST /operators`.
+
+As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort`, `filter` e `includeInactive`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
 
 ## Estrutura
 

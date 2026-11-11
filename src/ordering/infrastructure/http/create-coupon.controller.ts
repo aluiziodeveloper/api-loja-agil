@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { CreateCouponUseCase } from '../../application/use-cases/create-coupon.use-case.js';
 import { type CouponResponse, presentCoupon } from './order.presenter.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
+import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
 /** A união do desconto é formato, e por isso fica no schema; os limites, no domínio. */
 export const createCouponBody = z.object({
@@ -29,6 +31,7 @@ export class CreateCouponController {
   ) {}
 
   @Post()
+  @Roles(OPERATOR)
   async handle(
     @Body(new ZodValidationPipe(createCouponBody)) body: CreateCouponBody,
   ): Promise<CouponResponse> {

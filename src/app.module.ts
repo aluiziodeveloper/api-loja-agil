@@ -17,6 +17,7 @@ import { OrderingModule } from './ordering/ordering.module.js';
 import { AccessTokens } from './shared/infrastructure/auth/access-tokens.js';
 import { AuthGuard } from './shared/infrastructure/auth/auth.guard.js';
 import { AuthModule } from './shared/infrastructure/auth/auth.module.js';
+import { RolesGuard } from './shared/infrastructure/auth/roles.guard.js';
 import { DatabaseModule } from './shared/infrastructure/database/database.module.js';
 import { EnvelopeInterceptor } from './shared/infrastructure/http/envelope.interceptor.js';
 import { ErrorResponseFilter } from './shared/infrastructure/http/error-response.filter.js';
@@ -49,6 +50,12 @@ import { ErrorResponseFilter } from './shared/infrastructure/http/error-response
       useFactory: (reflector: Reflector, accessTokens: AccessTokens) =>
         new AuthGuard(reflector, accessTokens),
       inject: [Reflector, AccessTokens],
+    },
+    // Na ordem de registro: primeiro quem é (401), depois o que pode (403).
+    {
+      provide: APP_GUARD,
+      useFactory: (reflector: Reflector) => new RolesGuard(reflector),
+      inject: [Reflector],
     },
   ],
 })

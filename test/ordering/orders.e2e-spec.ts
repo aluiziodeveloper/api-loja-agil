@@ -174,7 +174,11 @@ describe('Orders (e2e)', () => {
   it('should answer 409 to a transition out of the lifecycle', async () => {
     const id = await draftWith(1);
 
-    const response = await transition(id, 'ship');
+    const response = await app.inject({
+      headers: operator,
+      method: 'POST',
+      url: `/orders/${id}/ship`,
+    });
 
     expect(response.statusCode).toBe(409);
     expect(response.json()).toMatchObject({
