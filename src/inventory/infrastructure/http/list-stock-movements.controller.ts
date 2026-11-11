@@ -1,4 +1,5 @@
 import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import type { z } from 'zod';
 import {
   type Page,
@@ -20,6 +21,7 @@ export const listStockMovementsQuery = searchQuery.pick({
 
 type ListStockMovementsQuery = z.infer<typeof listStockMovementsQuery>;
 
+@ApiTags('Estoque')
 @Controller('stock')
 export class ListStockMovementsController {
   constructor(

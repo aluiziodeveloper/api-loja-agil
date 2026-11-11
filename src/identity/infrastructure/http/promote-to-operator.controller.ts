@@ -6,6 +6,7 @@ import {
   Inject,
   Post,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
@@ -18,6 +19,7 @@ export const promoteToOperatorBody = z.object({ email: z.string() });
 type PromoteToOperatorBody = z.infer<typeof promoteToOperatorBody>;
 
 /** Só um operador promove outro; o primeiro nasce pelo `npm run operator:promote`. */
+@ApiTags('Identidade')
 @Controller('operators')
 export class PromoteToOperatorController {
   constructor(

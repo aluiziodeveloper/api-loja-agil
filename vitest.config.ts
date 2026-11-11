@@ -27,6 +27,7 @@ export default defineConfig({
         'src/shared/application/events/event-publisher.ts',
         // Medidos pelos testes end-to-end, pelo HTTP (vitest.config.e2e.ts).
         'src/**/infrastructure/http/**/*.controller.ts',
+        'src/shared/infrastructure/openapi/open-api.ts',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {

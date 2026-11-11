@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { AdjustStockUseCase } from '../../application/use-cases/adjust-stock.use-case.js';
@@ -14,6 +15,7 @@ export const adjustStockBody = z.object({
 
 type AdjustStockBody = z.infer<typeof adjustStockBody>;
 
+@ApiTags('Estoque')
 @Controller('stock')
 export class AdjustStockController {
   constructor(

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { AddOrderItemUseCase } from '../../application/use-cases/add-order-item.use-case.js';
@@ -22,6 +23,7 @@ export const addOrderItemBody = z.object({
 type AddOrderItemBody = z.infer<typeof addOrderItemBody>;
 
 /** 200: a resposta é o pedido, não um item como recurso próprio. */
+@ApiTags('Pedidos')
 @Controller('orders')
 export class AddOrderItemController {
   constructor(

@@ -6,11 +6,13 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CancelOrderUseCase } from '../../application/use-cases/cancel-order.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Cancela e devolve ao estoque o que estava reservado ou vendido. */
+@ApiTags('Pedidos')
 @Controller('orders')
 export class CancelOrderController {
   constructor(

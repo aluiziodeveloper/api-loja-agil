@@ -1,8 +1,10 @@
 import { Controller, Delete, Inject, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { RemoveOrderItemUseCase } from '../../application/use-cases/remove-order-item.use-case.js';
 import { type OrderResponse, presentOrder } from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
+@ApiTags('Pedidos')
 @Controller('orders')
 export class RemoveOrderItemController {
   constructor(

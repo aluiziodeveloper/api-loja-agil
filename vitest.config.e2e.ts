@@ -19,7 +19,10 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.controller.ts'],
+      include: [
+        'src/**/*.controller.ts',
+        'src/shared/infrastructure/openapi/open-api.ts',
+      ],
       reportsDirectory: 'coverage/e2e',
       reporter: ['text', 'html', 'lcov'],
       thresholds: {

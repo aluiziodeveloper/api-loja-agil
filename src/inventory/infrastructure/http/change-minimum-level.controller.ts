@@ -1,4 +1,5 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ChangeMinimumLevelUseCase } from '../../application/use-cases/change-minimum-level.use-case.js';
@@ -11,6 +12,7 @@ export const changeMinimumLevelBody = z.object({ minimumLevel: z.number() });
 type ChangeMinimumLevelBody = z.infer<typeof changeMinimumLevelBody>;
 
 /** PUT: o nível mínimo é substituído inteiro, e repetir dá o mesmo resultado. */
+@ApiTags('Estoque')
 @Controller('stock')
 export class ChangeMinimumLevelController {
   constructor(
