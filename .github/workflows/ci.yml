@@ -75,12 +75,46 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:int
-      - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-integration
           path: coverage/integration/
+          retention-days: 7
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: docker
+          POSTGRES_DB: loja_agil_test
+          POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=pt-BR
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d loja_agil_test"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL_TEST: postgresql://postgres:docker@localhost:5432/loja_agil_test?schema=public
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-e2e
+          path: coverage/e2e/
           retention-days: 7
 
   build:
