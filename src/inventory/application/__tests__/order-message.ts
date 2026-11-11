@@ -1,4 +1,8 @@
-import type { OrderLine, OrderLinesMessage } from '../order-messages.js';
+import type {
+  OrderCancelledMessage,
+  OrderLine,
+  OrderLinesMessage,
+} from '../order-messages.js';
 
 export const ORDER_ID = '01890a5d-ac96-774b-bcce-b302099a8058';
 
@@ -8,4 +12,17 @@ export function orderMessage(
   items: OrderLine[],
 ): OrderLinesMessage {
   return { eventName, aggregateId: ORDER_ID, occurredAt: new Date(), items };
+}
+
+export function orderCancelledMessage(
+  items: OrderLine[],
+  previousStatus: string,
+): OrderCancelledMessage {
+  return {
+    eventName: 'OrderCancelled',
+    aggregateId: ORDER_ID,
+    occurredAt: new Date(),
+    items,
+    previousStatus,
+  };
 }
