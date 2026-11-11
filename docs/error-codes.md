@@ -5,12 +5,13 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 
 ## Shared Kernel
 
-| Código                  | Classe                     | Quando acontece                                          | HTTP |
-| ----------------------- | -------------------------- | -------------------------------------------------------- | ---- |
-| `INVALID_ID`            | `InvalidIdError`           | Identificador fora do formato UUID                       | 400  |
-| `INVALID_MONEY`         | `InvalidMoneyError`        | Valor negativo ou fora de centavos inteiros              | 400  |
-| `INVALID_SEARCH_PARAMS` | `InvalidSearchParamsError` | Página, itens por página, ordenação ou direção inválidos | 400  |
-| `INVALID_SKU`           | `InvalidSkuError`          | SKU fora do formato `ABC123[-VAR]`                       | 400  |
+| Código                  | Classe                     | Quando acontece                                                                             | HTTP |
+| ----------------------- | -------------------------- | ------------------------------------------------------------------------------------------- | ---- |
+| `INVALID_ID`            | `InvalidIdError`           | Identificador fora do formato UUID                                                          | 400  |
+| `INVALID_MONEY`         | `InvalidMoneyError`        | Valor negativo ou fora de centavos inteiros                                                 | 400  |
+| `INVALID_SEARCH_PARAMS` | `InvalidSearchParamsError` | Página, itens por página, ordenação ou direção inválidos                                    | 400  |
+| `INVALID_SKU`           | `InvalidSkuError`          | SKU fora do formato `ABC123[-VAR]`                                                          | 400  |
+| `CONCURRENT_UPDATE`     | `ConcurrentUpdateError`    | Outra operação gravou o mesmo registro depois que ele foi carregado; tentar de novo resolve | 409  |
 
 ## Identidade & Acesso
 

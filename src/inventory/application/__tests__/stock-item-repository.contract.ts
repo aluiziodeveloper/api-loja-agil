@@ -3,6 +3,7 @@ import { aStockItem } from '../../domain/__tests__/stock-item.builder.js';
 import { AdjustmentReason } from '../../domain/adjustment-reason.value-object.js';
 import { StockMovementType } from '../../domain/stock-movement.js';
 import { StockQuantity } from '../../domain/stock-quantity.value-object.js';
+import { StockItem } from '../../domain/stock-item.entity.js';
 import { movementSearchParams } from '../movement-search.js';
 import type { StockItemRepository } from '../ports/stock-item.repository.js';
 
@@ -101,5 +102,54 @@ export function stockItemRepositoryContract(
       3, 2,
     ]);
     expect(history).toMatchObject({ total: 3, lastPage: 2 });
+  });
+
+  describe('concurrency', () => {
+    async function loadMug(): Promise<StockItem> {
+      const stock = await stockItems.findBySku(MUG);
+      if (!stock) {
+        throw new Error('CAN001 deveria existir');
+      }
+      return stock;
+    }
+
+    it('should refuse to save an item someone else changed since it was loaded', async () => {
+      await stockItems.save(
+        aStockItem().withSku('CAN001').withOnHand(1).build(),
+      );
+      const mine = await loadMug();
+      const theirs = await loadMug();
+      theirs.reserve(StockQuantity.of(1));
+      await stockItems.save(theirs);
+
+      mine.reserve(StockQuantity.of(1));
+
+      await expect(stockItems.save(mine)).rejects.toMatchObject({
+        code: 'CONCURRENT_UPDATE',
+      });
+      expect((await stockItems.findBySku(MUG))?.toSnapshot().reserved).toBe(1);
+    });
+
+    it('should refuse to create an item someone else already created', async () => {
+      await stockItems.save(StockItem.create(MUG, StockQuantity.zero()));
+
+      await expect(
+        stockItems.save(StockItem.create(MUG, StockQuantity.zero())),
+      ).rejects.toMatchObject({ code: 'CONCURRENT_UPDATE' });
+    });
+
+    it('should let the same instance be saved again after its own save', async () => {
+      const stock = StockItem.create(MUG, StockQuantity.zero());
+      stock.receive(StockQuantity.of(5));
+      await stockItems.save(stock);
+
+      stock.reserve(StockQuantity.of(2));
+      await stockItems.save(stock);
+
+      expect((await stockItems.findBySku(MUG))?.toSnapshot()).toMatchObject({
+        onHand: 5,
+        reserved: 2,
+      });
+    });
   });
 }
