@@ -1,0 +1,11 @@
+// Catálogo.
+
+model Product {
+  id           String  @id @db.Uuid
+  sku          String  @unique @db.VarChar(20)
+  name         String  @db.VarChar(120)
+  priceInCents Int     @map("price_in_cents")
+  active       Boolean
+
+  @@map("products")
+}

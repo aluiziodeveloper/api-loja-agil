@@ -25,6 +25,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: docker
       POSTGRES_DB: loja_agil
+      # Ordenação de texto em português, igual em qualquer imagem ou sistema operacional.
+      POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=pt-BR
     ports:
       - '5432:5432'
     volumes:

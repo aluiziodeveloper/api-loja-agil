@@ -58,6 +58,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: docker
           POSTGRES_DB: loja_agil_test
+          POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=pt-BR
         ports:
           - 5432:5432
         options: >-
