@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { appErrorStatus } from './app-error-status.js';
+import { CatalogModule } from './catalog/catalog.module.js';
 import { validateEnv } from './config/env.schema.js';
 import { HealthModule } from './health/health.module.js';
 import { IdentityModule } from './identity/identity.module.js';
@@ -19,6 +20,7 @@ import { ErrorResponseFilter } from './shared/infrastructure/http/error-response
     DatabaseModule,
     HealthModule,
     IdentityModule,
+    CatalogModule,
   ],
   providers: [
     // Registrados aqui, e não no main.ts, valem também para a aplicação dos testes.
