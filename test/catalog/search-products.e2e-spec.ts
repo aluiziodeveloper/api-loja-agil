@@ -4,12 +4,15 @@ import { aProduct } from '../../src/catalog/domain/__tests__/product.builder.js'
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
 describe('GET /products (e2e)', () => {
   let app: NestFastifyApplication;
+  let api: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
   });
 
   beforeEach(async () => {
@@ -45,11 +48,10 @@ describe('GET /products (e2e)', () => {
     await app.close();
   });
 
-  const search = (query = '') =>
-    app.inject({ method: 'GET', url: `/products${query}` });
+  const search = (query = '') => api.get(`/products${query}`);
 
   const namesOf = (response: Awaited<ReturnType<typeof search>>) =>
-    response.json<{ data: { name: string }[] }>().data.map(({ name }) => name);
+    dataOf<{ name: string }[]>(response).map(({ name }) => name);
 
   it('should answer the first page of active products, by name', async () => {
     const response = await search();

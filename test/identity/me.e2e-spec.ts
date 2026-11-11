@@ -2,25 +2,24 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
 describe('/me (e2e)', () => {
   let app: NestFastifyApplication;
-  let ana: { authorization: string };
+  let api: TestClient;
+  let ana: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
   });
 
   beforeEach(async () => {
     await resetDatabase(app.get(PrismaDatabase));
-    await app.inject({
-      method: 'POST',
-      url: '/users',
-      payload: {
-        name: 'Ana Souza',
-        email: 'ana@loja.dev',
-        password: 'caneca123',
-      },
+    await api.post('/users', {
+      name: 'Ana Souza',
+      email: 'ana@loja.dev',
+      password: 'caneca123',
     });
     ana = await signIn('caneca123');
   });
@@ -29,18 +28,18 @@ describe('/me (e2e)', () => {
     await app.close();
   });
 
-  async function signIn(password: string): Promise<{ authorization: string }> {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/auth/sign-in',
-      payload: { email: 'ana@loja.dev', password },
+  async function signIn(password: string): Promise<TestClient> {
+    const response = await api.post('/auth/sign-in', {
+      email: 'ana@loja.dev',
+      password,
     });
-    const { accessToken } = response.json<{ data: { accessToken: string } }>()
-      .data;
-    return { authorization: `Bearer ${accessToken}` };
+    return TestClient.bearer(
+      app,
+      dataOf<{ accessToken: string }>(response).accessToken,
+    );
   }
 
-  const me = () => app.inject({ method: 'GET', url: '/me', headers: ana });
+  const me = () => ana.get('/me');
 
   it('should answer the profile of the user of the token', async () => {
     const response = await me();
@@ -52,24 +51,14 @@ describe('/me (e2e)', () => {
   });
 
   it('should update the name and the e-mail', async () => {
-    const response = await app.inject({
-      method: 'PATCH',
-      url: '/me',
-      headers: ana,
-      payload: { name: 'Ana Lima' },
-    });
+    const response = await ana.patch('/me', { name: 'Ana Lima' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({ data: { name: 'Ana Lima' } });
   });
 
   it('should refuse a role in the profile instead of ignoring it', async () => {
-    const response = await app.inject({
-      method: 'PATCH',
-      url: '/me',
-      headers: ana,
-      payload: { role: 'OPERATOR' },
-    });
+    const response = await ana.patch('/me', { role: 'OPERATOR' });
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({
@@ -79,29 +68,24 @@ describe('/me (e2e)', () => {
   });
 
   it('should change the password, so only the new one signs in', async () => {
-    const response = await app.inject({
-      method: 'PUT',
-      url: '/me/password',
-      headers: ana,
-      payload: { currentPassword: 'caneca123', newPassword: 'xicara456' },
+    const response = await ana.put('/me/password', {
+      currentPassword: 'caneca123',
+      newPassword: 'xicara456',
     });
 
     expect(response.statusCode).toBe(204);
     await expect(signIn('xicara456')).resolves.toBeDefined();
-    const old = await app.inject({
-      method: 'POST',
-      url: '/auth/sign-in',
-      payload: { email: 'ana@loja.dev', password: 'caneca123' },
+    const old = await api.post('/auth/sign-in', {
+      email: 'ana@loja.dev',
+      password: 'caneca123',
     });
     expect(old.statusCode).toBe(401);
   });
 
   it('should answer 422 to a wrong current password', async () => {
-    const response = await app.inject({
-      method: 'PUT',
-      url: '/me/password',
-      headers: ana,
-      payload: { currentPassword: 'errada123', newPassword: 'xicara456' },
+    const response = await ana.put('/me/password', {
+      currentPassword: 'errada123',
+      newPassword: 'xicara456',
     });
 
     expect(response.statusCode).toBe(422);
@@ -111,11 +95,7 @@ describe('/me (e2e)', () => {
   });
 
   it('should delete the account; the token still valid finds nobody', async () => {
-    const response = await app.inject({
-      method: 'DELETE',
-      url: '/me',
-      headers: ana,
-    });
+    const response = await ana.delete('/me');
 
     expect(response.statusCode).toBe(204);
     const after = await me();

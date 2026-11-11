@@ -3,35 +3,33 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
 describe('POST /auth/sign-in (e2e)', () => {
   let app: NestFastifyApplication;
+  let api: TestClient;
   let anaId: string;
 
   beforeAll(async () => {
     app = await createTestApp();
+    api = TestClient.anonymous(app);
   });
 
   beforeEach(async () => {
     await resetDatabase(app.get(PrismaDatabase));
-    const signUp = await app.inject({
-      method: 'POST',
-      url: '/users',
-      payload: {
-        name: 'Ana Souza',
-        email: 'ana@loja.dev',
-        password: 'caneca123',
-      },
+    const signUp = await api.post('/users', {
+      name: 'Ana Souza',
+      email: 'ana@loja.dev',
+      password: 'caneca123',
     });
-    anaId = signUp.json<{ data: { id: string } }>().data.id;
+    anaId = dataOf<{ id: string }>(signUp).id;
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  const signIn = (payload: object) =>
-    app.inject({ method: 'POST', url: '/auth/sign-in', payload });
+  const signIn = (payload: object) => api.post('/auth/sign-in', payload);
 
   it('should answer 200 with an access token for the user', async () => {
     const response = await signIn({
@@ -40,13 +38,7 @@ describe('POST /auth/sign-in (e2e)', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const { data } = response.json<{
-      data: {
-        accessToken: string;
-        tokenType: string;
-        expiresInSeconds: number;
-      };
-    }>();
+    const data = dataOf<{ accessToken: string }>(response);
     expect(data).toMatchObject({ tokenType: 'Bearer', expiresInSeconds: 3600 });
     expect(new JwtService().decode(data.accessToken)).toMatchObject({
       sub: anaId,

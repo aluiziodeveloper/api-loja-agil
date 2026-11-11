@@ -1,16 +1,17 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { authAs, OPERATOR } from '../setup/auth.js';
+import { OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
 describe('GET /users (e2e)', () => {
   let app: NestFastifyApplication;
-  let operator: { authorization: string };
+  let operator: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
-    operator = await authAs(app, OPERATOR);
+    operator = await TestClient.as(app, OPERATOR);
   });
 
   beforeEach(async () => {
@@ -22,24 +23,19 @@ describe('GET /users (e2e)', () => {
   });
 
   async function signUp(name: string, email: string): Promise<string> {
-    const response = await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: '/users',
-      payload: { name, email, password: 'caneca123' },
+    const response = await operator.post('/users', {
+      name,
+      email,
+      password: 'caneca123',
     });
-    return response.json<{ data: { id: string } }>().data.id;
+    return dataOf<{ id: string }>(response).id;
   }
 
   it('should list the users in alphabetical order', async () => {
     await signUp('Bruno Lima', 'bruno@loja.dev');
     await signUp('Ana Souza', 'ana@loja.dev');
 
-    const response = await app.inject({
-      headers: operator,
-      method: 'GET',
-      url: '/users',
-    });
+    const response = await operator.get('/users');
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
@@ -53,11 +49,7 @@ describe('GET /users (e2e)', () => {
   it('should find a user by id', async () => {
     const id = await signUp('Ana Souza', 'ana@loja.dev');
 
-    const response = await app.inject({
-      headers: operator,
-      method: 'GET',
-      url: `/users/${id}`,
-    });
+    const response = await operator.get(`/users/${id}`);
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
@@ -66,11 +58,9 @@ describe('GET /users (e2e)', () => {
   });
 
   it('should answer 404 to an id nobody has', async () => {
-    const response = await app.inject({
-      headers: operator,
-      method: 'GET',
-      url: '/users/0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10',
-    });
+    const response = await operator.get(
+      '/users/0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10',
+    );
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({
@@ -79,11 +69,7 @@ describe('GET /users (e2e)', () => {
   });
 
   it('should answer 400 to an id that is not a UUID', async () => {
-    const response = await app.inject({
-      headers: operator,
-      method: 'GET',
-      url: '/users/42',
-    });
+    const response = await operator.get('/users/42');
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({ error: { code: 'INVALID_ID' } });

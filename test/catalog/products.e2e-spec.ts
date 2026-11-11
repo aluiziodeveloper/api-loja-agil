@@ -1,18 +1,19 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { authAs, OPERATOR } from '../setup/auth.js';
+import { OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
+import { dataOf, TestClient } from '../setup/test-client.js';
 
-type ProductBody = { data: { id: string; active: boolean } };
+type Product = { id: string; active: boolean };
 
 describe('Products (e2e)', () => {
   let app: NestFastifyApplication;
-  let operator: { authorization: string };
+  let operator: TestClient;
 
   beforeAll(async () => {
     app = await createTestApp();
-    operator = await authAs(app, OPERATOR);
+    operator = await TestClient.as(app, OPERATOR);
   });
 
   beforeEach(async () => {
@@ -26,15 +27,10 @@ describe('Products (e2e)', () => {
   const caneca = { sku: 'CAN001', name: 'Caneca Ágil', priceInCents: 4590 };
 
   const create = (payload: object = caneca) =>
-    app.inject({
-      headers: operator,
-      method: 'POST',
-      url: '/products',
-      payload,
-    });
+    operator.post('/products', payload);
 
   async function createdId(): Promise<string> {
-    return (await create()).json<ProductBody>().data.id;
+    return dataOf<Product>(await create()).id;
   }
 
   it('should create a product and answer 201', async () => {
@@ -71,11 +67,7 @@ describe('Products (e2e)', () => {
   it('should find a product by id', async () => {
     const id = await createdId();
 
-    const response = await app.inject({
-      headers: operator,
-      method: 'GET',
-      url: `/products/${id}`,
-    });
+    const response = await operator.get(`/products/${id}`);
 
     expect(response.json()).toEqual({ data: { id, ...caneca, active: true } });
   });
@@ -83,11 +75,8 @@ describe('Products (e2e)', () => {
   it('should change only what the PATCH brings', async () => {
     const id = await createdId();
 
-    const response = await app.inject({
-      headers: operator,
-      method: 'PATCH',
-      url: `/products/${id}`,
-      payload: { priceInCents: 3990 },
+    const response = await operator.patch(`/products/${id}`, {
+      priceInCents: 3990,
     });
 
     expect(response.statusCode).toBe(200);
@@ -99,28 +88,18 @@ describe('Products (e2e)', () => {
   it('should deactivate and activate again, answering 200', async () => {
     const id = await createdId();
 
-    const deactivated = await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: `/products/${id}/deactivate`,
-    });
-    const activated = await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: `/products/${id}/activate`,
-    });
+    const deactivated = await operator.post(`/products/${id}/deactivate`);
+    const activated = await operator.post(`/products/${id}/activate`);
 
     expect(deactivated.statusCode).toBe(200);
-    expect(deactivated.json<ProductBody>().data.active).toBe(false);
-    expect(activated.json<ProductBody>().data.active).toBe(true);
+    expect(dataOf<Product>(deactivated).active).toBe(false);
+    expect(dataOf<Product>(activated).active).toBe(true);
   });
 
   it('should answer 404 to a product nobody created', async () => {
-    const response = await app.inject({
-      headers: operator,
-      method: 'POST',
-      url: '/products/0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10/activate',
-    });
+    const response = await operator.post(
+      '/products/0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10/activate',
+    );
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({
