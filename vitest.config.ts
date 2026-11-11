@@ -16,6 +16,8 @@ export default defineConfig({
         '**/*.int-spec.ts',
         'src/**/*.module.ts',
         'src/main.ts',
+        // Pontos de entrada, como o main.ts: só montam a aplicação e chamam um caso de uso.
+        'src/cli/**',
         // Medida pelos testes de integração, contra o banco (vitest.config.int.ts).
         'src/**/infrastructure/database/**',
         'src/**/infrastructure/persistence/**',

@@ -63,6 +63,11 @@ export class User extends AggregateRoot {
     this.props = { ...this.props, passwordHash };
   }
 
+  /** RN03: o operador administra catálogo, estoque e cupons. */
+  promoteToOperator(): void {
+    this.props = { ...this.props, role: Role.OPERATOR };
+  }
+
   hasEmail(email: Email): boolean {
     return this.props.email.equals(email);
   }

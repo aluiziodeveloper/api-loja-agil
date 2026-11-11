@@ -26,6 +26,7 @@
     "arch": "depcruise src --config .dependency-cruiser.cjs",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "operator:promote": "node dist/cli/promote-operator.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ReceiveStockUseCase } from '../../application/use-cases/receive-stock.use-case.js';
 import { presentStock, type StockResponse } from './stock.presenter.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
+import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
 export const receiveStockBody = z.object({ quantity: z.number() });
 
@@ -17,6 +19,7 @@ export class ReceiveStockController {
   ) {}
 
   @Post(':sku/receipts')
+  @Roles(OPERATOR)
   async handle(
     @Param('sku') sku: string,
     @Body(new ZodValidationPipe(receiveStockBody)) body: ReceiveStockBody,

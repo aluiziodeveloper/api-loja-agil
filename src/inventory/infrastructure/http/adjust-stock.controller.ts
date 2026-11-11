@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { AdjustStockUseCase } from '../../application/use-cases/adjust-stock.use-case.js';
 import { presentStock, type StockResponse } from './stock.presenter.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
+import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
 /** O motivo é obrigatório pela regra do domínio, não pelo schema. */
 export const adjustStockBody = z.object({
@@ -20,6 +22,7 @@ export class AdjustStockController {
   ) {}
 
   @Post(':sku/adjustments')
+  @Roles(OPERATOR)
   async handle(
     @Param('sku') sku: string,
     @Body(new ZodValidationPipe(adjustStockBody)) body: AdjustStockBody,

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { UpdateProductUseCase } from '../../application/use-cases/update-product.use-case.js';
 import { presentProduct, type ProductResponse } from './product.presenter.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
+import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
 /** PATCH: só muda o que vier. O SKU é a identidade do produto e não muda. */
 export const updateProductBody = z.object({
@@ -20,6 +22,7 @@ export class UpdateProductController {
   ) {}
 
   @Patch(':id')
+  @Roles(OPERATOR)
   async handle(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateProductBody)) body: UpdateProductBody,
