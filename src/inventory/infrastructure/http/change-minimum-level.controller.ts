@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -29,6 +30,13 @@ export class ChangeMinimumLevelController {
   ) {}
 
   @Put(':sku/minimum-level')
+  @ApiOperation({ summary: 'Muda o nível mínimo de um SKU.' })
+  @ApiErrors(
+    'INVALID_SKU',
+    'STOCK_ITEM_NOT_FOUND',
+    'INVALID_STOCK_QUANTITY',
+    'CONCURRENT_UPDATE',
+  )
   @ApiBodyOf(changeMinimumLevelBody)
   @ApiData(stockResponse)
   @Roles(OPERATOR)

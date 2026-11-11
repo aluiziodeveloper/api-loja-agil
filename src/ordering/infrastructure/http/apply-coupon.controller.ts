@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -28,6 +29,16 @@ export class ApplyCouponController {
   ) {}
 
   @Put(':id/coupon')
+  @ApiOperation({ summary: 'Aplica um cupom ao rascunho do pedido.' })
+  @ApiErrors(
+    'INVALID_ID',
+    'ORDER_NOT_FOUND',
+    'ORDER_NOT_EDITABLE',
+    'INVALID_COUPON_CODE',
+    'COUPON_NOT_FOUND',
+    'COUPON_NOT_APPLICABLE',
+    'COUPON_ALREADY_APPLIED',
+  )
   @ApiBodyOf(applyCouponBody)
   @ApiData(orderResponse)
   async handle(

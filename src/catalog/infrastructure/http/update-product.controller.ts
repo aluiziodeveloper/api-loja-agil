@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Param, Patch } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -32,6 +33,13 @@ export class UpdateProductController {
   ) {}
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Renomeia um produto ou muda o preço.' })
+  @ApiErrors(
+    'INVALID_ID',
+    'PRODUCT_NOT_FOUND',
+    'INVALID_PRODUCT_NAME',
+    'INVALID_MONEY',
+  )
   @ApiBodyOf(updateProductBody)
   @ApiData(productResponse)
   @Roles(OPERATOR)

@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  ApiErrors,
   ApiPage,
   ApiQueryOf,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
@@ -36,6 +37,8 @@ export class SearchProductsController {
 
   @Public()
   @Get()
+  @ApiOperation({ summary: 'Busca produtos, com filtro, ordenação e página.' })
+  @ApiErrors('INVALID_SEARCH_PARAMS')
   @ApiQueryOf(searchProductsQuery)
   @ApiPage(productResponse)
   async handle(

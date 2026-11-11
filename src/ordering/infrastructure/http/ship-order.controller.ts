@@ -6,8 +6,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { ShipOrderUseCase } from '../../application/use-cases/ship-order.use-case.js';
 import {
   orderResponse,
@@ -26,6 +29,8 @@ export class ShipOrderController {
   ) {}
 
   @Post(':id/ship')
+  @ApiOperation({ summary: 'Despacha um pedido pago.' })
+  @ApiErrors('INVALID_ID', 'ORDER_NOT_FOUND', 'INVALID_ORDER_TRANSITION')
   @ApiData(orderResponse)
   @Roles(OPERATOR)
   @HttpCode(HttpStatus.OK)

@@ -5,6 +5,7 @@ import {
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module.js';
+import { appErrorStatus } from './app-error-status.js';
 import type { Env } from './config/env.schema.js';
 import { setupOpenApi } from './shared/infrastructure/openapi/open-api.js';
 
@@ -13,7 +14,7 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new FastifyAdapter(),
   );
-  setupOpenApi(app);
+  setupOpenApi(app, appErrorStatus);
   const config = app.get<ConfigService<Env, true>>(ConfigService);
 
   await app.listen(config.get('PORT', { infer: true }), '0.0.0.0');

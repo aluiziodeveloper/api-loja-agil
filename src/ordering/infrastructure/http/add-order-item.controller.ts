@@ -7,10 +7,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -40,6 +41,16 @@ export class AddOrderItemController {
   ) {}
 
   @Post(':id/items')
+  @ApiOperation({ summary: 'Põe um produto no rascunho do pedido.' })
+  @ApiErrors(
+    'INVALID_ID',
+    'ORDER_NOT_FOUND',
+    'ORDER_NOT_EDITABLE',
+    'INVALID_SKU',
+    'INVALID_QUANTITY',
+    'PRODUCT_UNAVAILABLE',
+    'TOO_MANY_ORDER_ITEMS',
+  )
   @ApiBodyOf(addOrderItemBody)
   @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)

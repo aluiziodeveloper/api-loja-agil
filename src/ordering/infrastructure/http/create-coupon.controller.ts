@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -41,6 +42,13 @@ export class CreateCouponController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Cria um cupom de desconto.' })
+  @ApiErrors(
+    'INVALID_COUPON_CODE',
+    'INVALID_DISCOUNT',
+    'INVALID_MONEY',
+    'COUPON_CODE_IN_USE',
+  )
   @ApiBodyOf(createCouponBody)
   @ApiData(couponResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)

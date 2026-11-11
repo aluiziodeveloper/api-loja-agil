@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Patch } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
@@ -34,6 +35,13 @@ export class UpdateMeController {
   ) {}
 
   @Patch()
+  @ApiOperation({ summary: 'Muda o próprio nome ou e-mail.' })
+  @ApiErrors(
+    'USER_NOT_FOUND',
+    'INVALID_NAME',
+    'INVALID_EMAIL',
+    'EMAIL_ALREADY_IN_USE',
+  )
   @ApiBodyOf(updateMeBody)
   @ApiData(userResponse)
   async handle(

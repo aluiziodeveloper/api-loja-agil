@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -33,6 +34,13 @@ export class CreateProductController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Cadastra um produto no catálogo.' })
+  @ApiErrors(
+    'INVALID_SKU',
+    'INVALID_PRODUCT_NAME',
+    'INVALID_MONEY',
+    'SKU_ALREADY_IN_USE',
+  )
   @ApiBodyOf(createProductBody)
   @ApiData(productResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)

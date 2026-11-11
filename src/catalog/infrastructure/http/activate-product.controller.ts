@@ -6,8 +6,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { ActivateProductUseCase } from '../../application/use-cases/activate-product.use-case.js';
 import {
   productResponse,
@@ -27,6 +30,8 @@ export class ActivateProductController {
   ) {}
 
   @Post(':id/activate')
+  @ApiOperation({ summary: 'Reativa um produto, que volta à vitrine.' })
+  @ApiErrors('INVALID_ID', 'PRODUCT_NOT_FOUND')
   @ApiData(productResponse)
   @Roles(OPERATOR)
   @HttpCode(HttpStatus.OK)

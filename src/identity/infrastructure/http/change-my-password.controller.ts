@@ -6,9 +6,10 @@ import {
   Inject,
   Put,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
+  ApiErrors,
   ApiNoContent,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
@@ -33,6 +34,8 @@ export class ChangeMyPasswordController {
   ) {}
 
   @Put('password')
+  @ApiOperation({ summary: 'Troca a própria senha.' })
+  @ApiErrors('USER_NOT_FOUND', 'WEAK_PASSWORD', 'INCORRECT_CURRENT_PASSWORD')
   @ApiBodyOf(changeMyPasswordBody)
   @ApiNoContent()
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -1,6 +1,9 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { GetOrderUseCase } from '../../application/use-cases/get-order.use-case.js';
 import {
   orderResponse,
@@ -18,6 +21,8 @@ export class GetOrderController {
   ) {}
 
   @Get(':id')
+  @ApiOperation({ summary: 'Mostra um pedido do cliente.' })
+  @ApiErrors('INVALID_ID', 'ORDER_NOT_FOUND')
   @ApiData(orderResponse)
   async handle(
     @CurrentCustomer() customerId: string,

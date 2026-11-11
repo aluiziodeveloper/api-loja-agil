@@ -1,8 +1,9 @@
 import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -32,6 +33,13 @@ export class SignUpController {
 
   @Public()
   @Post()
+  @ApiOperation({ summary: 'Cadastra um cliente.' })
+  @ApiErrors(
+    'INVALID_EMAIL',
+    'INVALID_NAME',
+    'WEAK_PASSWORD',
+    'EMAIL_ALREADY_IN_USE',
+  )
   @ApiBodyOf(signUpBody)
   @ApiData(userResponse, HttpStatus.CREATED)
   async handle(

@@ -6,10 +6,11 @@ import {
   Post,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -36,6 +37,13 @@ export class ReceiveStockController {
   ) {}
 
   @Post(':sku/receipts')
+  @ApiOperation({ summary: 'Registra a entrada de unidades de um SKU.' })
+  @ApiErrors(
+    'INVALID_SKU',
+    'INVALID_STOCK_QUANTITY',
+    'EMPTY_STOCK_MOVEMENT',
+    'CONCURRENT_UPDATE',
+  )
   @ApiBodyOf(receiveStockBody)
   @ApiData(stockResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)

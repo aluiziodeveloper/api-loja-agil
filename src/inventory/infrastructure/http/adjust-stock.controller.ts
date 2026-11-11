@@ -6,10 +6,11 @@ import {
   Post,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
@@ -39,6 +40,16 @@ export class AdjustStockController {
   ) {}
 
   @Post(':sku/adjustments')
+  @ApiOperation({ summary: 'Ajusta o estoque pela contagem, com o motivo.' })
+  @ApiErrors(
+    'INVALID_SKU',
+    'STOCK_ITEM_NOT_FOUND',
+    'INVALID_STOCK_QUANTITY',
+    'MISSING_ADJUSTMENT_REASON',
+    'EMPTY_STOCK_MOVEMENT',
+    'STOCK_BELOW_RESERVED',
+    'CONCURRENT_UPDATE',
+  )
   @ApiBodyOf(adjustStockBody)
   @ApiData(stockResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)
