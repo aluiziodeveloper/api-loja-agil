@@ -15,7 +15,10 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       provider: 'v8',
-      include: ['src/**/infrastructure/**/*.ts'],
+      include: [
+        'src/**/infrastructure/database/**/*.ts',
+        'src/**/infrastructure/persistence/**/*.ts',
+      ],
       exclude: [
         'src/**/__tests__/**',
         '**/*.int-spec.ts',
