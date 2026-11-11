@@ -11,6 +11,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:docker@db:5432/loja_agil?schema=public
       DATABASE_URL_TEST: postgresql://postgres:docker@db:5432/loja_agil_test?schema=public
+      # Só para desenvolvimento. Em produção, o segredo vem do ambiente da plataforma.
+      JWT_SECRET: dev-secret-never-use-in-production-0001
     volumes:
       - .:/app
     ports:

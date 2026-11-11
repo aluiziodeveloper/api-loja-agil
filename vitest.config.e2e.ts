@@ -11,7 +11,10 @@ export default defineConfig({
     root: './',
     include: ['test/**/*.e2e-spec.ts'],
     globalSetup: ['test/setup/migrate-test-database.ts'],
-    env: { DATABASE_URL: process.env.DATABASE_URL_TEST ?? '' },
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL_TEST ?? '',
+      JWT_SECRET: 'e2e-secret-with-at-least-32-characters',
+    },
     fileParallelism: false,
     coverage: {
       provider: 'v8',

@@ -9,6 +9,7 @@ import { IdentityModule } from './identity/identity.module.js';
 import { IntegrationModule } from './integration/integration.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { OrderingModule } from './ordering/ordering.module.js';
+import { AuthModule } from './shared/infrastructure/auth/auth.module.js';
 import { DatabaseModule } from './shared/infrastructure/database/database.module.js';
 import { EnvelopeInterceptor } from './shared/infrastructure/http/envelope.interceptor.js';
 import { ErrorResponseFilter } from './shared/infrastructure/http/error-response.filter.js';
@@ -21,6 +22,7 @@ import { ErrorResponseFilter } from './shared/infrastructure/http/error-response
       validate: validateEnv,
     }),
     DatabaseModule,
+    AuthModule,
     HealthModule,
     IdentityModule,
     CatalogModule,
