@@ -1,51 +1,31 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { ProductRepository } from '../../src/catalog/application/ports/product.repository.js';
-import { aProduct } from '../../src/catalog/domain/__tests__/product.builder.js';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { OPERATOR } from '../setup/auth.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenProduct, MUG } from '../setup/scenarios.js';
+import { dataOf } from '../setup/test-client.js';
 
 describe('GET /products (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-  });
+  const e2e = useTestApp();
+  const api = e2e.api;
+  const operator = e2e.as(OPERATOR);
 
   beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-    const products = app.get(ProductRepository);
-    await products.save(
-      aProduct()
-        .withSku('CAN001')
-        .withName('Caneca Ágil')
-        .withPriceInCents(4590)
-        .build(),
-    );
-    await products.save(
-      aProduct()
-        .withSku('CAM001')
-        .withName('Camiseta Scrum')
-        .withPriceInCents(7990)
-        .build(),
-    );
-    await products.save(
-      aProduct()
-        .withSku('ADE001')
-        .withName('Adesivo Kanban')
-        .withPriceInCents(990)
-        .build(),
-    );
-    await products.save(
-      aProduct().withSku('BON001').withName('Boné Sprint').inactive().build(),
-    );
-  });
-
-  afterAll(async () => {
-    await app.close();
+    await givenProduct(operator, MUG);
+    await givenProduct(operator, {
+      sku: 'CAM001',
+      name: 'Camiseta Scrum',
+      priceInCents: 7990,
+    });
+    await givenProduct(operator, {
+      sku: 'ADE001',
+      name: 'Adesivo Kanban',
+      priceInCents: 990,
+    });
+    const bone = await givenProduct(operator, {
+      sku: 'BON001',
+      name: 'Boné Sprint',
+      priceInCents: 3990,
+    });
+    await operator.post(`/products/${bone}/deactivate`);
   });
 
   const search = (query = '') => api.get(`/products${query}`);

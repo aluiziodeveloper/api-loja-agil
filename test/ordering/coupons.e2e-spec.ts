@@ -1,9 +1,6 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { customer, OPERATOR } from '../setup/auth.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenDraft, givenProduct, MUG } from '../setup/scenarios.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
 
@@ -15,37 +12,16 @@ const agil10 = {
 };
 
 describe('Coupons (e2e)', () => {
-  let app: NestFastifyApplication;
-  let operator: TestClient;
-  let ana: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    operator = await TestClient.as(app, OPERATOR);
-    ana = await TestClient.as(app, customer(ANA));
-  });
-
-  beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const e2e = useTestApp();
+  const operator = e2e.as(OPERATOR);
+  const ana = e2e.as(customer(ANA));
 
   const createCoupon = (payload: object = agil10) =>
     operator.post('/coupons', payload);
 
   async function draftOf(quantity: number): Promise<string> {
-    await operator.post('/products', {
-      sku: 'CAN001',
-      name: 'Caneca Ágil',
-      priceInCents: 4590,
-    });
-    const draft = await ana.post('/orders');
-    const { id } = dataOf<{ id: string }>(draft);
-    await ana.post(`/orders/${id}/items`, { sku: 'CAN001', quantity });
-    return id;
+    await givenProduct(operator);
+    return givenDraft(ana, [{ sku: MUG.sku, quantity }]);
   }
 
   const applyCoupon = (orderId: string, code = 'AGIL10') =>

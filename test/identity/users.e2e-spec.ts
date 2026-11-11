@@ -1,35 +1,13 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { OPERATOR } from '../setup/auth.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenUser } from '../setup/scenarios.js';
 
 describe('GET /users (e2e)', () => {
-  let app: NestFastifyApplication;
-  let operator: TestClient;
+  const e2e = useTestApp();
+  const operator = e2e.as(OPERATOR);
 
-  beforeAll(async () => {
-    app = await createTestApp();
-    operator = await TestClient.as(app, OPERATOR);
-  });
-
-  beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  async function signUp(name: string, email: string): Promise<string> {
-    const response = await operator.post('/users', {
-      name,
-      email,
-      password: 'caneca123',
-    });
-    return dataOf<{ id: string }>(response).id;
-  }
+  const signUp = (name: string, email: string) =>
+    givenUser(e2e.api, { name, email, password: 'caneca123' });
 
   it('should list the users in alphabetical order', async () => {
     await signUp('Bruno Lima', 'bruno@loja.dev');

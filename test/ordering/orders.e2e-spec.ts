@@ -1,48 +1,24 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
-import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { customer, OPERATOR } from '../setup/auth.js';
-import { createTestApp } from '../setup/create-test-app.js';
-import { dataOf, TestClient } from '../setup/test-client.js';
+import { useTestApp } from '../setup/e2e.js';
+import { givenDraft, givenProduct, MUG } from '../setup/scenarios.js';
+import { dataOf } from '../setup/test-client.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
 const BRUNO = '6a2f41a3-c54b-4b4e-8c1a-5d3e2f1a0b9c';
 
 describe('Orders (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
-  let operator: TestClient;
-  let ana: TestClient;
-  let bruno: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-    operator = await TestClient.as(app, OPERATOR);
-    ana = await TestClient.as(app, customer(ANA));
-    bruno = await TestClient.as(app, customer(BRUNO));
-  });
+  const e2e = useTestApp();
+  const api = e2e.api;
+  const operator = e2e.as(OPERATOR);
+  const ana = e2e.as(customer(ANA));
+  const bruno = e2e.as(customer(BRUNO));
 
   beforeEach(async () => {
-    await resetDatabase(app.get(PrismaDatabase));
-    await operator.post('/products', {
-      sku: 'CAN001',
-      name: 'Caneca Ágil',
-      priceInCents: 4590,
-    });
-    await operator.post('/stock/CAN001/receipts', { quantity: 3 });
+    await givenProduct(operator, MUG, 3);
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
-  async function draftWith(quantity: number): Promise<string> {
-    const draft = await ana.post('/orders');
-    const { id } = dataOf<{ id: string }>(draft);
-    await ana.post(`/orders/${id}/items`, { sku: 'CAN001', quantity });
-    return id;
-  }
+  const draftWith = (quantity: number) =>
+    givenDraft(ana, [{ sku: MUG.sku, quantity }]);
 
   const transition = (id: string, action: string) =>
     ana.post(`/orders/${id}/${action}`);

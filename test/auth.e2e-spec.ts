@@ -1,20 +1,9 @@
 import { JwtService } from '@nestjs/jwt';
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { createTestApp } from './setup/create-test-app.js';
-import { TestClient } from './setup/test-client.js';
+import { useTestApp } from './setup/e2e.js';
 
 describe('Authentication (e2e)', () => {
-  let app: NestFastifyApplication;
-  let api: TestClient;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-    api = TestClient.anonymous(app);
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const e2e = useTestApp();
+  const api = e2e.api;
 
   const unauthorized = {
     error: {
@@ -31,7 +20,7 @@ describe('Authentication (e2e)', () => {
   });
 
   it('should answer 401 to a token it did not issue', async () => {
-    const response = await app.inject({
+    const response = await e2e.app.inject({
       method: 'GET',
       url: '/users',
       headers: { authorization: 'Bearer abc.def.ghi' },
@@ -53,7 +42,7 @@ describe('Authentication (e2e)', () => {
       options,
     );
 
-    const response = await app.inject({
+    const response = await e2e.app.inject({
       method: 'GET',
       url: '/users',
       headers: { authorization: `Bearer ${token}` },
@@ -64,7 +53,7 @@ describe('Authentication (e2e)', () => {
   });
 
   it('should no longer accept the provisional x-customer-id header', async () => {
-    const response = await app.inject({
+    const response = await e2e.app.inject({
       method: 'POST',
       url: '/orders',
       headers: { 'x-customer-id': '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10' },

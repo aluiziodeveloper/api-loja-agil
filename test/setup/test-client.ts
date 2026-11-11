@@ -1,12 +1,18 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import type { Principal } from '../../src/shared/infrastructure/auth/access-tokens.js';
-import { authAs } from './auth.js';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 type Headers = Record<string, string>;
 
-type Response = Awaited<ReturnType<NestFastifyApplication['inject']>>;
+export type TestResponse = Awaited<
+  ReturnType<NestFastifyApplication['inject']>
+>;
+
+/** O que o cliente precisa só na hora da requisição: a aplicação e os headers. */
+export type Connection = {
+  app: () => NestFastifyApplication;
+  headers: () => Promise<Headers>;
+};
 
 /**
  * Quem faz a requisição, e não como ela é montada: `ana.post('/orders')`
@@ -14,55 +20,39 @@ type Response = Awaited<ReturnType<NestFastifyApplication['inject']>>;
  * como a jornada de quem usa a API.
  */
 export class TestClient {
-  private constructor(
-    private readonly app: NestFastifyApplication,
-    private readonly headers: Headers,
-  ) {}
+  constructor(private readonly connection: Connection) {}
 
-  /** Sem token: o que qualquer um na internet consegue fazer. */
-  static anonymous(app: NestFastifyApplication): TestClient {
-    return new TestClient(app, {});
-  }
-
-  /** Com um token emitido pela própria aplicação para esse usuário. */
-  static async as(
-    app: NestFastifyApplication,
-    principal: Principal,
-  ): Promise<TestClient> {
-    return new TestClient(app, await authAs(app, principal));
-  }
-
-  /** Com o token que o login devolveu. */
-  static bearer(app: NestFastifyApplication, accessToken: string): TestClient {
-    return new TestClient(app, { authorization: `Bearer ${accessToken}` });
-  }
-
-  get(url: string): Promise<Response> {
+  get(url: string): Promise<TestResponse> {
     return this.request('GET', url);
   }
 
-  post(url: string, payload?: object): Promise<Response> {
+  post(url: string, payload?: object): Promise<TestResponse> {
     return this.request('POST', url, payload);
   }
 
-  put(url: string, payload?: object): Promise<Response> {
+  put(url: string, payload?: object): Promise<TestResponse> {
     return this.request('PUT', url, payload);
   }
 
-  patch(url: string, payload?: object): Promise<Response> {
+  patch(url: string, payload?: object): Promise<TestResponse> {
     return this.request('PATCH', url, payload);
   }
 
-  delete(url: string): Promise<Response> {
+  delete(url: string): Promise<TestResponse> {
     return this.request('DELETE', url);
   }
 
-  request(method: Method, url: string, payload?: object): Promise<Response> {
-    return this.app.inject({ method, url, headers: this.headers, payload });
+  async request(
+    method: Method,
+    url: string,
+    payload?: object,
+  ): Promise<TestResponse> {
+    const headers = await this.connection.headers();
+    return this.connection.app().inject({ method, url, headers, payload });
   }
 }
 
 /** O conteúdo do envelope `{ data }` de uma resposta de sucesso. */
-export function dataOf<Data>(response: Response): Data {
+export function dataOf<Data>(response: TestResponse): Data {
   return response.json<{ data: Data }>().data;
 }
