@@ -10,7 +10,7 @@ export type CatalogProduct = {
 
 /**
  * Porta para outro bounded context. O Pedido diz o que precisa, na sua
- * linguagem; o adaptador que conversa com o Catálogo vem no módulo 09.
+ * linguagem; o adaptador que conversa com o Catálogo fica em `src/integration`.
  */
 export abstract class ProductCatalog {
   abstract findBySku(sku: Sku): Promise<CatalogProduct | null>;
