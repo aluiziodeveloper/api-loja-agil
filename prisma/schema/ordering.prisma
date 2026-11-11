@@ -1,0 +1,12 @@
+// Pedidos.
+
+/// O desconto é uma união (percentual ou valor fixo) gravada como o `DiscountSnapshot`.
+model Coupon {
+  id                  String   @id @db.Uuid
+  code                String   @unique @db.VarChar(20)
+  discount            Json
+  minimumOrderInCents Int      @map("minimum_order_in_cents")
+  expiresAt           DateTime @map("expires_at")
+
+  @@map("coupons")
+}
