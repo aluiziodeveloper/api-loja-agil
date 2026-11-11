@@ -36,15 +36,16 @@ O status HTTP é definido na infraestrutura (módulo 11); a coluna abaixo é a p
 
 ## Estoque
 
-| Código                      | Classe                         | Quando acontece                                       | HTTP |
-| --------------------------- | ------------------------------ | ----------------------------------------------------- | ---- |
-| `INVALID_STOCK_QUANTITY`    | `InvalidStockQuantityError`    | Quantidade negativa ou fracionada                     | 400  |
-| `EMPTY_STOCK_MOVEMENT`      | `EmptyStockMovementError`      | Entrada, reserva, liberação ou baixa de zero unidades | 400  |
-| `MISSING_ADJUSTMENT_REASON` | `MissingAdjustmentReasonError` | Ajuste de inventário sem motivo                       | 400  |
-| `STOCK_BELOW_RESERVED`      | `StockBelowReservedError`      | Contagem menor que a quantidade reservada             | 409  |
-| `INSUFFICIENT_STOCK`        | `InsufficientStockError`       | Reserva maior que o disponível                        | 409  |
-| `RESERVED_STOCK_EXCEEDED`   | `ReservedStockExceededError`   | Liberação ou baixa maior que o reservado              | 409  |
-| `STOCK_ITEM_NOT_FOUND`      | `StockItemNotFoundError`       | SKU sem estoque registrado                            | 404  |
+| Código                      | Classe                         | Quando acontece                                                       | HTTP |
+| --------------------------- | ------------------------------ | --------------------------------------------------------------------- | ---- |
+| `INVALID_STOCK_QUANTITY`    | `InvalidStockQuantityError`    | Quantidade negativa ou fracionada                                     | 400  |
+| `EMPTY_STOCK_MOVEMENT`      | `EmptyStockMovementError`      | Entrada, reserva, liberação ou baixa de zero unidades                 | 400  |
+| `MISSING_ADJUSTMENT_REASON` | `MissingAdjustmentReasonError` | Ajuste de inventário sem motivo                                       | 400  |
+| `STOCK_BELOW_RESERVED`      | `StockBelowReservedError`      | Contagem menor que a quantidade reservada                             | 409  |
+| `INSUFFICIENT_STOCK`        | `InsufficientStockError`       | Reserva maior que o disponível                                        | 409  |
+| `RESERVED_STOCK_EXCEEDED`   | `ReservedStockExceededError`   | Liberação ou baixa maior que o reservado                              | 409  |
+| `STOCK_ITEM_NOT_FOUND`      | `StockItemNotFoundError`       | SKU sem estoque registrado                                            | 404  |
+| `STOCK_SHORTAGE`            | `StockShortageError`           | Pedido confirmado com itens além do disponível; lista todas as faltas | 422  |
 
 ## Pedidos
 
