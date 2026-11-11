@@ -1,6 +1,7 @@
 /**
  * Regras de arquitetura verificadas no CI (ADR 0002).
  * Contextos: identity, catalog, inventory, ordering. Shared Kernel: shared.
+ * Integração entre contextos: integration.
  */
 const contexts = '(identity|catalog|inventory|ordering)';
 /** Arquivos de teste: specs e utilitários em pastas __tests__ (builders, fakes). */
@@ -37,10 +38,18 @@ module.exports = {
     {
       name: 'no-cross-context-imports',
       comment:
-        'Um bounded context não importa código de outro; integração por portas e eventos.',
+        'Um bounded context não importa código de outro; integração por portas e eventos, ligados em src/integration.',
       severity: 'error',
       from: { path: `^src/${contexts}/` },
       to: { path: `^src/${contexts}/`, pathNot: '^src/$1/' },
+    },
+    {
+      name: 'integration-is-the-outer-layer',
+      comment:
+        'A integração conhece os contextos para ligá-los; nenhum contexto nem o Shared Kernel conhece a integração.',
+      severity: 'error',
+      from: { path: '^src/(identity|catalog|inventory|ordering|shared)/' },
+      to: { path: '^src/integration/' },
     },
     {
       name: 'shared-is-context-agnostic',
