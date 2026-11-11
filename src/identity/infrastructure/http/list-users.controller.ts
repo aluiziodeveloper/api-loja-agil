@@ -1,5 +1,5 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ListUsersUseCase } from '../../application/use-cases/list-users.use-case.js';
@@ -19,6 +19,7 @@ export class ListUsersController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Lista os usuários.' })
   @ApiData(z.array(userResponse))
   @Roles(OPERATOR)
   async handle(): Promise<UserResponse[]> {

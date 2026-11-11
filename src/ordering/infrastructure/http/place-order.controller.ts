@@ -6,8 +6,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { PlaceOrderUseCase } from '../../application/use-cases/place-order.use-case.js';
 import {
   orderResponse,
@@ -25,6 +28,16 @@ export class PlaceOrderController {
   ) {}
 
   @Post(':id/place')
+  @ApiOperation({ summary: 'Confirma o pedido e reserva o estoque.' })
+  @ApiErrors(
+    'INVALID_ID',
+    'ORDER_NOT_FOUND',
+    'INVALID_ORDER_TRANSITION',
+    'EMPTY_ORDER',
+    'COUPON_NOT_APPLICABLE',
+    'STOCK_SHORTAGE',
+    'CONCURRENT_UPDATE',
+  )
   @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)
   async handle(

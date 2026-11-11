@@ -1,5 +1,5 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
-import { ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiExtension, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import type { SchemaObject } from '@nestjs/swagger';
 import { z } from 'zod';
 import { pageMetaResponse } from '../http/page.js';
@@ -54,4 +54,12 @@ export function ApiNoContent(): MethodDecorator {
     status: HttpStatus.NO_CONTENT,
     description: 'Sem corpo.',
   });
+}
+
+/**
+ * Os códigos de erro do domínio que a rota pode devolver. O status de cada um
+ * vem do mapa de erros da aplicação, na montagem do documento.
+ */
+export function ApiErrors(...codes: string[]): MethodDecorator {
+  return ApiExtension('x-error-codes', codes);
 }

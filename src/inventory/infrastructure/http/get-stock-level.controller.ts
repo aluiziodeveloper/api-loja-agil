@@ -1,6 +1,9 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { GetStockLevelUseCase } from '../../application/use-cases/get-stock-level.use-case.js';
 import {
   stockResponse,
@@ -20,6 +23,8 @@ export class GetStockLevelController {
   ) {}
 
   @Get(':sku')
+  @ApiOperation({ summary: 'Mostra o estoque de um SKU.' })
+  @ApiErrors('INVALID_SKU', 'STOCK_ITEM_NOT_FOUND')
   @ApiData(stockResponse)
   @Roles(OPERATOR)
   async handle(@Param('sku') sku: string): Promise<StockResponse> {

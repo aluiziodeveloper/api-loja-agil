@@ -6,8 +6,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { DeactivateProductUseCase } from '../../application/use-cases/deactivate-product.use-case.js';
 import {
   productResponse,
@@ -27,6 +30,8 @@ export class DeactivateProductController {
   ) {}
 
   @Post(':id/deactivate')
+  @ApiOperation({ summary: 'Desativa um produto, que sai da vitrine.' })
+  @ApiErrors('INVALID_ID', 'PRODUCT_NOT_FOUND')
   @ApiData(productResponse)
   @Roles(OPERATOR)
   @HttpCode(HttpStatus.OK)

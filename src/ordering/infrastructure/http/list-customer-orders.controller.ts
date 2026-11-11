@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  ApiErrors,
   ApiPage,
   ApiQueryOf,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
@@ -37,6 +38,8 @@ export class ListCustomerOrdersController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Lista os pedidos do cliente.' })
+  @ApiErrors('INVALID_SEARCH_PARAMS')
   @ApiQueryOf(listCustomerOrdersQuery)
   @ApiPage(orderResponse)
   async handle(

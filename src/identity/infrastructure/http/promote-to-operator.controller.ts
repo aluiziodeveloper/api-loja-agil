@@ -6,10 +6,11 @@ import {
   Inject,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ApiBodyOf,
   ApiData,
+  ApiErrors,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
@@ -36,6 +37,8 @@ export class PromoteToOperatorController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Promove um usuário a operador.' })
+  @ApiErrors('INVALID_EMAIL', 'USER_NOT_FOUND')
   @ApiBodyOf(promoteToOperatorBody)
   @ApiData(userResponse)
   @HttpCode(HttpStatus.OK)

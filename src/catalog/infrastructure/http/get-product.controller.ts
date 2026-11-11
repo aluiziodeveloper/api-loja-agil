@@ -1,6 +1,9 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { GetProductUseCase } from '../../application/use-cases/get-product.use-case.js';
 import {
   productResponse,
@@ -18,6 +21,8 @@ export class GetProductController {
 
   @Public()
   @Get(':id')
+  @ApiOperation({ summary: 'Mostra um produto.' })
+  @ApiErrors('INVALID_ID', 'PRODUCT_NOT_FOUND')
   @ApiData(productResponse)
   async handle(@Param('id') id: string): Promise<ProductResponse> {
     return presentProduct(await this.getProduct.execute({ productId: id }));

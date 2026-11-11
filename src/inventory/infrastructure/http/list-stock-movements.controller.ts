@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  ApiErrors,
   ApiPage,
   ApiQueryOf,
 } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
@@ -38,6 +39,8 @@ export class ListStockMovementsController {
   ) {}
 
   @Get(':sku/movements')
+  @ApiOperation({ summary: 'Lista as movimentações de um SKU.' })
+  @ApiErrors('INVALID_SKU', 'STOCK_ITEM_NOT_FOUND', 'INVALID_SEARCH_PARAMS')
   @ApiQueryOf(listStockMovementsQuery)
   @ApiPage(movementResponse)
   @Roles(OPERATOR)

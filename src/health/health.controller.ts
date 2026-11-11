@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { Public } from '../shared/infrastructure/auth/public.decorator.js';
 import { ApiData } from '../shared/infrastructure/openapi/api-docs.decorators.js';
@@ -16,6 +16,7 @@ export type HealthStatus = z.infer<typeof healthStatus>;
 export class HealthController {
   @Public()
   @Get()
+  @ApiOperation({ summary: 'Diz se a aplicação está no ar.' })
   @ApiData(healthStatus)
   check(): HealthStatus {
     return {

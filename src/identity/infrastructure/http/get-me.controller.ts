@@ -1,6 +1,9 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case.js';
@@ -22,6 +25,8 @@ export class GetMeController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Mostra o próprio perfil.' })
+  @ApiErrors('USER_NOT_FOUND')
   @ApiData(userResponse)
   async handle(@CurrentPrincipal() me: Principal): Promise<UserResponse> {
     return presentUser(await this.getProfile.execute({ userId: me.userId }));

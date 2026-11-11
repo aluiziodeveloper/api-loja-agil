@@ -6,8 +6,11 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { PayOrderUseCase } from '../../application/use-cases/pay-order.use-case.js';
 import {
   orderResponse,
@@ -25,6 +28,13 @@ export class PayOrderController {
   ) {}
 
   @Post(':id/pay')
+  @ApiOperation({ summary: 'Registra o pagamento de um pedido.' })
+  @ApiErrors(
+    'INVALID_ID',
+    'ORDER_NOT_FOUND',
+    'INVALID_ORDER_TRANSITION',
+    'CONCURRENT_UPDATE',
+  )
   @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)
   async handle(

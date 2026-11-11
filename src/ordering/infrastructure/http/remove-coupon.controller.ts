@@ -6,8 +6,11 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiData,
+  ApiErrors,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { RemoveCouponUseCase } from '../../application/use-cases/remove-coupon.use-case.js';
 import {
   orderResponse,
@@ -26,6 +29,8 @@ export class RemoveCouponController {
   ) {}
 
   @Delete(':id/coupon')
+  @ApiOperation({ summary: 'Tira o cupom do rascunho do pedido.' })
+  @ApiErrors('INVALID_ID', 'ORDER_NOT_FOUND', 'ORDER_NOT_EDITABLE')
   @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)
   async handle(

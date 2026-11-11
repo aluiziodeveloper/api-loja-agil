@@ -1,5 +1,5 @@
 import { Controller, Inject, Post, HttpStatus } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { CreateDraftOrderUseCase } from '../../application/use-cases/create-draft-order.use-case.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
@@ -19,6 +19,7 @@ export class CreateDraftOrderController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Abre um rascunho de pedido.' })
   @ApiData(orderResponse, HttpStatus.CREATED)
   async handle(@CurrentCustomer() customerId: string): Promise<OrderResponse> {
     return presentOrder(await this.createDraftOrder.execute({ customerId }));
