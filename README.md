@@ -42,7 +42,7 @@ docker compose exec app sh -c "npm run format:check && npm run lint && npm run t
 
 ## API
 
-Com a aplicação no ar, a documentação interativa fica em <http://localhost:3000/docs>, e o documento OpenAPI, em <http://localhost:3000/docs-json>.
+Com a aplicação no ar, a documentação interativa fica em <http://localhost:3000/docs>, e o documento OpenAPI, em <http://localhost:3000/docs-json> (ADR 0016). Ele sai dos mesmos schemas Zod que validam as requisições e filtram as respostas, e os testes end-to-end conferem cada resposta contra ele.
 
 Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" }`), e toda falha em `{ "error": { "code", "message" } }` (ADR 0013). Os códigos e seus status estão em [docs/error-codes.md](docs/error-codes.md).
 

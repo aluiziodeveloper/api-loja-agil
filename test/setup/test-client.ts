@@ -1,6 +1,6 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 
-type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 type Headers = Record<string, string>;
 
@@ -8,10 +8,14 @@ export type TestResponse = Awaited<
   ReturnType<NestFastifyApplication['inject']>
 >;
 
-/** O que o cliente precisa só na hora da requisição: a aplicação e os headers. */
+/**
+ * O que o cliente precisa só na hora da requisição: a aplicação, os headers
+ * e quem confere a resposta contra o documento OpenAPI.
+ */
 export type Connection = {
   app: () => NestFastifyApplication;
   headers: () => Promise<Headers>;
+  check: (method: Method, url: string, response: TestResponse) => void;
 };
 
 /**
@@ -48,7 +52,11 @@ export class TestClient {
     payload?: object,
   ): Promise<TestResponse> {
     const headers = await this.connection.headers();
-    return this.connection.app().inject({ method, url, headers, payload });
+    const response = await this.connection
+      .app()
+      .inject({ method, url, headers, payload });
+    this.connection.check(method, url, response);
+    return response;
   }
 }
 
