@@ -1,0 +1,6 @@
+import type { DomainEvent } from '../../domain/domain-event.js';
+
+/** Porta: o caso de uso entrega os eventos sem saber quem os ouve. */
+export interface EventPublisher {
+  publish(events: DomainEvent[]): Promise<void>;
+}
