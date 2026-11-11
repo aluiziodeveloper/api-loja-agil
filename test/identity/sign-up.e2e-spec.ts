@@ -32,10 +32,12 @@ describe('POST /users (e2e)', () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.json()).toEqual({
-      id: expect.any(String),
-      name: 'Ana Souza',
-      email: 'ana@loja.dev',
-      role: 'CUSTOMER',
+      data: {
+        id: expect.any(String),
+        name: 'Ana Souza',
+        email: 'ana@loja.dev',
+        role: 'CUSTOMER',
+      },
     });
   });
 
@@ -61,7 +63,7 @@ describe('POST /users (e2e)', () => {
       role: 'OPERATOR',
     });
 
-    expect(response.json()).toMatchObject({ role: 'CUSTOMER' });
+    expect(response.json()).toMatchObject({ data: { role: 'CUSTOMER' } });
   });
 
   it('should answer 400 listing the fields that are missing or of another type', async () => {
