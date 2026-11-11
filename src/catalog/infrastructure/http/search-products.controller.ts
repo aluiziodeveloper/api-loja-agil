@@ -1,5 +1,9 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiPage,
+  ApiQueryOf,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import {
   type Page,
@@ -8,7 +12,11 @@ import {
 import { searchQuery } from '../../../shared/infrastructure/http/search-query.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SearchProductsUseCase } from '../../application/use-cases/search-products.use-case.js';
-import { presentProduct, type ProductResponse } from './product.presenter.js';
+import {
+  productResponse,
+  presentProduct,
+  type ProductResponse,
+} from './product.presenter.js';
 import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 /** `?includeInactive=true` traz também os produtos desativados. */
@@ -28,6 +36,8 @@ export class SearchProductsController {
 
   @Public()
   @Get()
+  @ApiQueryOf(searchProductsQuery)
+  @ApiPage(productResponse)
   async handle(
     @Query(new ZodValidationPipe(searchProductsQuery))
     { includeInactive = false, ...query }: SearchProductsQuery,

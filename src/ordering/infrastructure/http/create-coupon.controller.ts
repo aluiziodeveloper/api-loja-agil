@@ -1,9 +1,17 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { CreateCouponUseCase } from '../../application/use-cases/create-coupon.use-case.js';
-import { type CouponResponse, presentCoupon } from './order.presenter.js';
+import {
+  couponResponse,
+  type CouponResponse,
+  presentCoupon,
+} from './order.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
@@ -33,6 +41,8 @@ export class CreateCouponController {
   ) {}
 
   @Post()
+  @ApiBodyOf(createCouponBody)
+  @ApiData(couponResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)
   async handle(
     @Body(new ZodValidationPipe(createCouponBody)) body: CreateCouponBody,

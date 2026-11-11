@@ -1,9 +1,17 @@
 import { Body, Controller, Inject, Param, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ChangeMinimumLevelUseCase } from '../../application/use-cases/change-minimum-level.use-case.js';
-import { presentStock, type StockResponse } from './stock.presenter.js';
+import {
+  stockResponse,
+  presentStock,
+  type StockResponse,
+} from './stock.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
@@ -21,6 +29,8 @@ export class ChangeMinimumLevelController {
   ) {}
 
   @Put(':sku/minimum-level')
+  @ApiBodyOf(changeMinimumLevelBody)
+  @ApiData(stockResponse)
   @Roles(OPERATOR)
   async handle(
     @Param('sku') sku: string,

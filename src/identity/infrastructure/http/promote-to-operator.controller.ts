@@ -7,12 +7,20 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { PromoteToOperatorUseCase } from '../../application/use-cases/promote-to-operator.use-case.js';
-import { presentUser, type UserResponse } from './user.presenter.js';
+import {
+  userResponse,
+  presentUser,
+  type UserResponse,
+} from './user.presenter.js';
 
 export const promoteToOperatorBody = z.object({ email: z.string() });
 
@@ -28,6 +36,8 @@ export class PromoteToOperatorController {
   ) {}
 
   @Post()
+  @ApiBodyOf(promoteToOperatorBody)
+  @ApiData(userResponse)
   @HttpCode(HttpStatus.OK)
   @Roles(OPERATOR)
   async handle(

@@ -8,10 +8,18 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { AddOrderItemUseCase } from '../../application/use-cases/add-order-item.use-case.js';
-import { type OrderResponse, presentOrder } from './order.presenter.js';
+import {
+  orderResponse,
+  type OrderResponse,
+  presentOrder,
+} from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** O preço não vem do cliente: o Pedido o lê do Catálogo. */
@@ -32,6 +40,8 @@ export class AddOrderItemController {
   ) {}
 
   @Post(':id/items')
+  @ApiBodyOf(addOrderItemBody)
+  @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)
   async handle(
     @CurrentCustomer() customerId: string,

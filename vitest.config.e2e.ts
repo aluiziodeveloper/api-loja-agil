@@ -22,6 +22,7 @@ export default defineConfig({
       include: [
         'src/**/*.controller.ts',
         'src/shared/infrastructure/openapi/open-api.ts',
+        'src/shared/infrastructure/openapi/api-docs.decorators.ts',
       ],
       reportsDirectory: 'coverage/e2e',
       reporter: ['text', 'html', 'lcov'],

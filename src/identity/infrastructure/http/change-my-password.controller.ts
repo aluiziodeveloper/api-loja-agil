@@ -7,6 +7,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiNoContent,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
 import { CurrentPrincipal } from '../../../shared/infrastructure/auth/principal.js';
@@ -29,6 +33,8 @@ export class ChangeMyPasswordController {
   ) {}
 
   @Put('password')
+  @ApiBodyOf(changeMyPasswordBody)
+  @ApiNoContent()
   @HttpCode(HttpStatus.NO_CONTENT)
   async handle(
     @CurrentPrincipal() me: Principal,

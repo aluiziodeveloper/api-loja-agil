@@ -7,8 +7,13 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { PlaceOrderUseCase } from '../../application/use-cases/place-order.use-case.js';
-import { type OrderResponse, presentOrder } from './order.presenter.js';
+import {
+  orderResponse,
+  type OrderResponse,
+  presentOrder,
+} from './order.presenter.js';
 import { CurrentCustomer } from './current-customer.decorator.js';
 
 /** Confirma o pedido e reserva o estoque, na mesma transação (RN12). */
@@ -20,6 +25,7 @@ export class PlaceOrderController {
   ) {}
 
   @Post(':id/place')
+  @ApiData(orderResponse)
   @HttpCode(HttpStatus.OK)
   async handle(
     @CurrentCustomer() customerId: string,

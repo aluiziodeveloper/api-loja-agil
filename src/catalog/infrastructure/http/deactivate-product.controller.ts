@@ -7,8 +7,13 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { DeactivateProductUseCase } from '../../application/use-cases/deactivate-product.use-case.js';
-import { presentProduct, type ProductResponse } from './product.presenter.js';
+import {
+  productResponse,
+  presentProduct,
+  type ProductResponse,
+} from './product.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
@@ -22,6 +27,7 @@ export class DeactivateProductController {
   ) {}
 
   @Post(':id/deactivate')
+  @ApiData(productResponse)
   @Roles(OPERATOR)
   @HttpCode(HttpStatus.OK)
   async handle(@Param('id') id: string): Promise<ProductResponse> {

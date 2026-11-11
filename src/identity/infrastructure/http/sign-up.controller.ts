@@ -1,9 +1,17 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SignUpUseCase } from '../../application/use-cases/sign-up.use-case.js';
-import { presentUser, type UserResponse } from './user.presenter.js';
+import {
+  userResponse,
+  presentUser,
+  type UserResponse,
+} from './user.presenter.js';
 import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
 
 /** Só o formato: tamanho da senha e e-mail válido são regras do domínio. */
@@ -24,6 +32,8 @@ export class SignUpController {
 
   @Public()
   @Post()
+  @ApiBodyOf(signUpBody)
+  @ApiData(userResponse, HttpStatus.CREATED)
   async handle(
     @Body(new ZodValidationPipe(signUpBody)) body: SignUpBody,
   ): Promise<UserResponse> {

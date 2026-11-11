@@ -1,9 +1,17 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Post, HttpStatus } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBodyOf,
+  ApiData,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case.js';
-import { presentProduct, type ProductResponse } from './product.presenter.js';
+import {
+  productResponse,
+  presentProduct,
+  type ProductResponse,
+} from './product.presenter.js';
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
@@ -25,6 +33,8 @@ export class CreateProductController {
   ) {}
 
   @Post()
+  @ApiBodyOf(createProductBody)
+  @ApiData(productResponse, HttpStatus.CREATED)
   @Roles(OPERATOR)
   async handle(
     @Body(new ZodValidationPipe(createProductBody)) body: CreateProductBody,
