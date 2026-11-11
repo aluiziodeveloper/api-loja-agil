@@ -1,28 +1,34 @@
 import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { currentCustomerOf } from './current-customer.decorator.js';
 
-function requestWith(headers: object): ExecutionContext {
+function requestWith(request: object): ExecutionContext {
   return {
-    switchToHttp: () => ({ getRequest: () => ({ headers }) }),
+    switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;
 }
 
 describe('currentCustomerOf', () => {
-  it('should read the customer from the x-customer-id header', () => {
+  it('should take the customer from the user of the token', () => {
     const customerId = currentCustomerOf(
       undefined,
-      requestWith({ 'x-customer-id': '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10' }),
+      requestWith({
+        headers: {},
+        principal: {
+          userId: '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10',
+          role: 'CUSTOMER',
+        },
+      }),
     );
 
     expect(customerId).toBe('0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10');
   });
 
-  it.each([
-    ['is missing', {}],
-    ['is empty', { 'x-customer-id': '' }],
-    ['is repeated', { 'x-customer-id': ['a', 'b'] }],
-  ])('should answer 401 when the header %s', (_, headers) => {
-    expect(() => currentCustomerOf(undefined, requestWith(headers))).toThrow(
+  it('should not trust the old x-customer-id header anymore', () => {
+    const request = requestWith({
+      headers: { 'x-customer-id': '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10' },
+    });
+
+    expect(() => currentCustomerOf(undefined, request)).toThrow(
       UnauthorizedException,
     );
   });

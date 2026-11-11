@@ -1,32 +1,16 @@
-import {
-  createParamDecorator,
-  type ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
-
-export const CUSTOMER_HEADER = 'x-customer-id';
-
-type RequestWithHeaders = {
-  headers: Record<string, string | string[] | undefined>;
-};
+import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
+import { principalOf } from '../../../shared/infrastructure/auth/principal.js';
 
 /**
- * PROVISÓRIO até o módulo 12: o cliente se identifica por um header, sem
- * prova nenhuma. Quando o JWT chegar, só esta função muda; controllers e
- * casos de uso continuam recebendo um `customerId`.
+ * O cliente é o usuário do token. No módulo 11, era o header provisório
+ * `x-customer-id`: só esta função mudou, e controllers e casos de uso
+ * continuam recebendo um `customerId`.
  */
 export function currentCustomerOf(
-  _data: unknown,
+  data: unknown,
   context: ExecutionContext,
 ): string {
-  const { headers } = context.switchToHttp().getRequest<RequestWithHeaders>();
-  const customerId = headers[CUSTOMER_HEADER];
-  if (typeof customerId !== 'string' || customerId.length === 0) {
-    throw new UnauthorizedException(
-      `Informe o cliente no header ${CUSTOMER_HEADER}.`,
-    );
-  }
-  return customerId;
+  return principalOf(data, context).userId;
 }
 
 /** O id do cliente que fez a requisição. */

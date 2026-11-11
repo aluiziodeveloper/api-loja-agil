@@ -1,13 +1,16 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
+import { authAs, OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
 
 describe('Stock (e2e)', () => {
   let app: NestFastifyApplication;
+  let operator: { authorization: string };
 
   beforeAll(async () => {
     app = await createTestApp();
+    operator = await authAs(app, OPERATOR);
   });
 
   beforeEach(async () => {
@@ -20,6 +23,7 @@ describe('Stock (e2e)', () => {
 
   const receive = (quantity: number) =>
     app.inject({
+      headers: operator,
       method: 'POST',
       url: '/stock/CAN001/receipts',
       payload: { quantity },
@@ -45,6 +49,7 @@ describe('Stock (e2e)', () => {
     await receive(10);
 
     const response = await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/stock/CAN001/adjustments',
       payload: { countedQuantity: 8, reason: 'Duas canecas quebradas' },
@@ -58,6 +63,7 @@ describe('Stock (e2e)', () => {
     await receive(10);
 
     const response = await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/stock/CAN001/adjustments',
       payload: { countedQuantity: 8, reason: ' ' },
@@ -73,6 +79,7 @@ describe('Stock (e2e)', () => {
     await receive(3);
 
     const response = await app.inject({
+      headers: operator,
       method: 'PUT',
       url: '/stock/CAN001/minimum-level',
       payload: { minimumLevel: 5 },
@@ -85,7 +92,11 @@ describe('Stock (e2e)', () => {
   });
 
   it('should answer 404 to a SKU without stock', async () => {
-    const response = await app.inject({ method: 'GET', url: '/stock/XYZ999' });
+    const response = await app.inject({
+      headers: operator,
+      method: 'GET',
+      url: '/stock/XYZ999',
+    });
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({
@@ -98,6 +109,7 @@ describe('Stock (e2e)', () => {
     await receive(5);
 
     const response = await app.inject({
+      headers: operator,
       method: 'GET',
       url: '/stock/CAN001/movements?sortDirection=desc&perPage=1',
     });
@@ -124,7 +136,11 @@ describe('Stock (e2e)', () => {
     );
     const statuses = responses.map(({ statusCode }) => statusCode);
     const accepted = statuses.filter((status) => status === 201).length;
-    const stock = await app.inject({ method: 'GET', url: '/stock/CAN001' });
+    const stock = await app.inject({
+      headers: operator,
+      method: 'GET',
+      url: '/stock/CAN001',
+    });
 
     expect(statuses.every((status) => [201, 409].includes(status))).toBe(true);
     for (const conflict of responses.filter(

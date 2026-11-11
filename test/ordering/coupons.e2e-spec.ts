@@ -1,6 +1,7 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-database.js';
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
+import { authAs, customer, OPERATOR } from '../setup/auth.js';
 import { createTestApp } from '../setup/create-test-app.js';
 
 const ANA = '0b6f1c1e-3c55-4a4f-9a8e-2d8f6f7b9c10';
@@ -14,9 +15,13 @@ const agil10 = {
 
 describe('Coupons (e2e)', () => {
   let app: NestFastifyApplication;
+  let operator: { authorization: string };
+  let ana: { authorization: string };
 
   beforeAll(async () => {
     app = await createTestApp();
+    operator = await authAs(app, OPERATOR);
+    ana = await authAs(app, customer(ANA));
   });
 
   beforeEach(async () => {
@@ -28,10 +33,11 @@ describe('Coupons (e2e)', () => {
   });
 
   const createCoupon = (payload: object = agil10) =>
-    app.inject({ method: 'POST', url: '/coupons', payload });
+    app.inject({ headers: operator, method: 'POST', url: '/coupons', payload });
 
   async function draftOf(quantity: number): Promise<string> {
     await app.inject({
+      headers: operator,
       method: 'POST',
       url: '/products',
       payload: { sku: 'CAN001', name: 'Caneca Ágil', priceInCents: 4590 },
@@ -39,10 +45,11 @@ describe('Coupons (e2e)', () => {
     const draft = await app.inject({
       method: 'POST',
       url: '/orders',
-      headers: { 'x-customer-id': ANA },
+      headers: ana,
     });
     const { id } = draft.json<{ data: { id: string } }>().data;
     await app.inject({
+      headers: ana,
       method: 'POST',
       url: `/orders/${id}/items`,
       payload: { sku: 'CAN001', quantity },
@@ -52,6 +59,7 @@ describe('Coupons (e2e)', () => {
 
   const applyCoupon = (orderId: string, code = 'AGIL10') =>
     app.inject({
+      headers: ana,
       method: 'PUT',
       url: `/orders/${orderId}/coupon`,
       payload: { code },
@@ -96,6 +104,7 @@ describe('Coupons (e2e)', () => {
 
     const applied = await applyCoupon(orderId);
     const removed = await app.inject({
+      headers: ana,
       method: 'DELETE',
       url: `/orders/${orderId}/coupon`,
     });
