@@ -35,5 +35,7 @@ import { PrismaStockItemRepository } from './infrastructure/persistence/prisma-s
     provideUseCase(ChangeMinimumLevelUseCase, [StockItemRepository]),
     provideUseCase(ListStockMovementsUseCase, [StockItemRepository]),
   ],
+  // A camada de integração precisa do repositório para ligar os contextos.
+  exports: [StockItemRepository],
 })
 export class InventoryModule {}

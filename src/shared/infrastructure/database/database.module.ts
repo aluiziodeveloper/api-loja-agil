@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../../../config/env.schema.js';
+import { Transaction } from '../../application/transaction.js';
 import { PrismaDatabase } from './prisma-database.js';
 
 /**
@@ -22,8 +23,10 @@ import { PrismaDatabase } from './prisma-database.js';
         new PrismaDatabase(config.get('DATABASE_URL', { infer: true })),
       inject: [ConfigService],
     },
+    // A mesma instância atende à porta: quem pede `Transaction` recebe o banco.
+    { provide: Transaction, useExisting: PrismaDatabase },
   ],
-  exports: [PrismaDatabase],
+  exports: [PrismaDatabase, Transaction],
 })
 export class DatabaseModule implements OnApplicationShutdown {
   constructor(
