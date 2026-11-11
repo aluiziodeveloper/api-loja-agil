@@ -19,6 +19,10 @@ export default defineConfig({
         // Medida pelos testes de integração, contra o banco (vitest.config.int.ts).
         'src/**/infrastructure/database/**',
         'src/**/infrastructure/persistence/**',
+        // Contratos sem comportamento: classes abstratas que só servem de token.
+        'src/**/application/ports/**',
+        // Medidos pelos testes end-to-end, pelo HTTP (vitest.config.e2e.ts).
+        'src/**/infrastructure/http/**/*.controller.ts',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {
