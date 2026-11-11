@@ -14,5 +14,6 @@
 | [0010](0010-object-calisthenics-as-guideline.md)            | Object Calisthenics como diretriz de design              | aceita |
 | [0011](0011-synchronous-integration-in-one-transaction.md)  | Integração síncrona entre contextos, na mesma transação  | aceita |
 | [0012](0012-persistence-with-prisma-behind-repositories.md) | Persistência com Prisma, atrás das portas de repositório | aceita |
+| [0013](0013-http-layer-with-nest.md)                        | A camada HTTP no NestJS: um controller por caso de uso   | aceita |
 
 Para uma nova decisão, copie `template.md` com o próximo número.

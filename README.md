@@ -30,14 +30,28 @@ Os bancos usam a collation ICU `pt-BR`, definida na criação do volume. Se o se
 docker compose exec app sh -c "npm run format:check && npm run lint && npm run typecheck && npm run arch && npm run test:cov && npm run test:int && npm run test:e2e && npm run build"
 ```
 
-| Script              | O que verifica                                                   |
-| ------------------- | ---------------------------------------------------------------- |
-| `npm run lint`      | oxlint, incluindo as regras de Object Calisthenics (ADR 0010)    |
-| `npm run typecheck` | Tipos do TypeScript                                              |
-| `npm run arch`      | Regras de dependência entre camadas e contextos (ADR 0002)       |
-| `npm run test:cov`  | Testes de unidade, com cobertura mínima de 90% e 100% no domínio |
-| `npm run test:int`  | Testes de integração, contra o banco de testes                   |
-| `npm run test:e2e`  | Testes ponta a ponta da API                                      |
+| Script              | O que verifica                                                    |
+| ------------------- | ----------------------------------------------------------------- |
+| `npm run lint`      | oxlint, incluindo as regras de Object Calisthenics (ADR 0010)     |
+| `npm run typecheck` | Tipos do TypeScript                                               |
+| `npm run arch`      | Regras de dependência entre camadas e contextos (ADR 0002)        |
+| `npm run test:cov`  | Testes de unidade, com cobertura mínima de 90% e 100% no domínio  |
+| `npm run test:int`  | Testes de integração, contra o banco de testes                    |
+| `npm run test:e2e`  | Testes ponta a ponta da API, pelo HTTP e contra o banco de testes |
+
+## API
+
+Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" }`), e toda falha em `{ "error": { "code", "message" } }` (ADR 0013). Os códigos e seus status estão em [docs/error-codes.md](docs/error-codes.md).
+
+| Contexto   | Rotas                                                                                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identidade | `POST /users`, `GET /users`, `GET /users/:id`                                                                                                                                                                            |
+| Catálogo   | `POST /products`, `GET /products`, `GET /products/:id`, `PATCH /products/:id`, `POST /products/:id/activate`, `POST /products/:id/deactivate`                                                                            |
+| Estoque    | `GET /stock/:sku`, `POST /stock/:sku/receipts`, `POST /stock/:sku/adjustments`, `PUT /stock/:sku/minimum-level`, `GET /stock/:sku/movements`                                                                             |
+| Pedidos    | `POST /orders`, `GET /orders`, `GET /orders/:id`, `POST /orders/:id/items`, `DELETE /orders/:id/items/:sku`, `PUT /orders/:id/coupon`, `DELETE /orders/:id/coupon`, `POST /orders/:id/place`, `/pay`, `/ship`, `/cancel` |
+| Cupons     | `POST /coupons`                                                                                                                                                                                                          |
+
+As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort`, `filter` e `includeInactive`. Até o módulo 12, as rotas de pedidos pedem o header provisório `x-customer-id`.
 
 ## Estrutura
 
@@ -50,7 +64,8 @@ src/
   ordering/    Pedidos
     domain/          entidades, value objects, eventos (TypeScript puro)
     application/     casos de uso e portas
-    infrastructure/  NestJS, banco de dados, HTTP
+    infrastructure/  banco de dados (persistence) e HTTP (controllers, presenters)
+    <contexto>.module.ts  composição do contexto no NestJS
   integration/ liga os contextos: adaptadores e inscrições nos eventos (ADR 0011)
   generated/   client do Prisma, gerado (fora do Git)
 prisma/        schema por contexto e migrations
