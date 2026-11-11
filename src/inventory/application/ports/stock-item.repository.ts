@@ -4,11 +4,12 @@ import type { StockItem } from '../../domain/stock-item.entity.js';
 import type { StockMovement } from '../../domain/stock-movement.js';
 import type { MovementSearchParams } from '../movement-search.js';
 
-export interface StockItemRepository {
+/** Classe abstrata para servir de token de injeção (aula 11-03). */
+export abstract class StockItemRepository {
   /** Grava o estado e acrescenta ao histórico os movimentos pendentes do item. */
-  save(stockItem: StockItem): Promise<void>;
-  findBySku(sku: Sku): Promise<StockItem | null>;
-  findMovements(
+  abstract save(stockItem: StockItem): Promise<void>;
+  abstract findBySku(sku: Sku): Promise<StockItem | null>;
+  abstract findMovements(
     sku: Sku,
     params: MovementSearchParams,
   ): Promise<SearchResult<StockMovement>>;

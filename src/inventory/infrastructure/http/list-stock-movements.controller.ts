@@ -1,0 +1,37 @@
+import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import type { z } from 'zod';
+import {
+  type Page,
+  presentPage,
+} from '../../../shared/infrastructure/http/page.js';
+import { searchQuery } from '../../../shared/infrastructure/http/search-query.js';
+import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
+import { ListStockMovementsUseCase } from '../../application/use-cases/list-stock-movements.use-case.js';
+import { type MovementResponse, presentMovement } from './stock.presenter.js';
+
+/** O histórico só se ordena pela data: sem `sort` nem `filter`. */
+export const listStockMovementsQuery = searchQuery.pick({
+  page: true,
+  perPage: true,
+  sortDirection: true,
+});
+
+type ListStockMovementsQuery = z.infer<typeof listStockMovementsQuery>;
+
+@Controller('stock')
+export class ListStockMovementsController {
+  constructor(
+    @Inject(ListStockMovementsUseCase)
+    private readonly listStockMovements: ListStockMovementsUseCase,
+  ) {}
+
+  @Get(':sku/movements')
+  async handle(
+    @Param('sku') sku: string,
+    @Query(new ZodValidationPipe(listStockMovementsQuery))
+    query: ListStockMovementsQuery,
+  ): Promise<Page<MovementResponse>> {
+    const output = await this.listStockMovements.execute({ sku, ...query });
+    return presentPage(output, presentMovement);
+  }
+}
