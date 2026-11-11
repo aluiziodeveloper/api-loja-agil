@@ -40,7 +40,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:cov
-      - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -76,6 +75,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:int
+      - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
         if: always()
         with:
