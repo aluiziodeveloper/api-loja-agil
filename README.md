@@ -30,14 +30,15 @@ Os bancos usam a collation ICU `pt-BR`, definida na criação do volume. Se o se
 docker compose exec app sh -c "npm run format:check && npm run lint && npm run typecheck && npm run arch && npm run test:cov && npm run test:int && npm run test:e2e && npm run build"
 ```
 
-| Script              | O que verifica                                                    |
-| ------------------- | ----------------------------------------------------------------- |
-| `npm run lint`      | oxlint, incluindo as regras de Object Calisthenics (ADR 0010)     |
-| `npm run typecheck` | Tipos do TypeScript                                               |
-| `npm run arch`      | Regras de dependência entre camadas e contextos (ADR 0002)        |
-| `npm run test:cov`  | Testes de unidade, com cobertura mínima de 90% e 100% no domínio  |
-| `npm run test:int`  | Testes de integração, contra o banco de testes                    |
-| `npm run test:e2e`  | Testes ponta a ponta da API, pelo HTTP e contra o banco de testes |
+| Script              | O que verifica                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run lint`      | oxlint, incluindo as regras de Object Calisthenics (ADR 0010)                                     |
+| `npm run typecheck` | Tipos do TypeScript                                                                               |
+| `npm run arch`      | Regras de dependência entre camadas e contextos (ADR 0002)                                        |
+| `npm run test:cov`  | Testes de unidade, com cobertura mínima de 90% e 100% no domínio                                  |
+| `npm run test:int`  | Testes de integração, contra o banco de testes                                                    |
+| `npm run test:e2e`  | Testes ponta a ponta da API, pelo HTTP, em paralelo, com um banco de testes por worker            |
+| `npm run db:seed`   | Loja de demonstração no banco de desenvolvimento (rode `npm run build` antes); pode rodar de novo |
 
 ## API
 
@@ -50,6 +51,8 @@ Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" 
 | Estoque    | `GET /stock/:sku`, `POST /stock/:sku/receipts`, `POST /stock/:sku/adjustments`, `PUT /stock/:sku/minimum-level`, `GET /stock/:sku/movements`                                                                             |
 | Pedidos    | `POST /orders`, `GET /orders`, `GET /orders/:id`, `POST /orders/:id/items`, `DELETE /orders/:id/items/:sku`, `PUT /orders/:id/coupon`, `DELETE /orders/:id/coupon`, `POST /orders/:id/place`, `/pay`, `/ship`, `/cancel` |
 | Cupons     | `POST /coupons`                                                                                                                                                                                                          |
+
+Para explorar a API em desenvolvimento, `npm run db:seed` cria a operadora `olga@loja.dev`, os clientes `ana@loja.dev` e `bruno@loja.dev` (senha `caneca123`), quatro produtos com estoque e o cupom `AGIL10`.
 
 O primeiro operador é promovido no servidor, com `npm run build && npm run operator:promote -- <email>`; depois, um operador promove outro por `POST /operators`.
 

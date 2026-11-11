@@ -27,6 +27,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "operator:promote": "node dist/cli/promote-operator.js",
+    "db:seed": "node dist/cli/seed.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
