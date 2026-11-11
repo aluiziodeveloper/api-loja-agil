@@ -36,10 +36,15 @@ describe('/me (e2e)', () => {
   });
 
   it('should update the name and the e-mail', async () => {
-    const response = await ana.patch('/me', { name: 'Ana Lima' });
+    const response = await ana.patch('/me', {
+      name: 'Ana Lima',
+      email: 'ana.lima@loja.dev',
+    });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ data: { name: 'Ana Lima' } });
+    expect(response.json()).toMatchObject({
+      data: { name: 'Ana Lima', email: 'ana.lima@loja.dev' },
+    });
   });
 
   it('should refuse a role in the profile instead of ignoring it', async () => {

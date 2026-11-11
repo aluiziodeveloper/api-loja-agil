@@ -3,6 +3,7 @@ import { E2E_WORKERS, e2eDatabaseUrl } from './e2e-databases.js';
 
 /** Antes da suíte e2e: um banco por worker, criado e migrado pelo Prisma. */
 export default function setup(): void {
+  process.stdout.write(`${E2E_WORKERS} bancos e2e, um por worker\n`);
   for (let worker = 1; worker <= E2E_WORKERS; worker++) {
     execSync('npx prisma migrate deploy', {
       stdio: 'inherit',

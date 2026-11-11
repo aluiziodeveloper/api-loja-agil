@@ -27,5 +27,5 @@ A API é consumida por clientes diversos (web, mobile, integrações), roda em u
 - Trocar o `JWT_SECRET` invalida todos os tokens de uma vez, o que serve de botão de emergência.
 - O perfil é lido do token, não do banco: uma promoção só vale no próximo login.
 - O pedido de outro cliente é indistinguível de um inexistente, o que impede descobrir ids válidos.
-- O valor `OPERATOR` existe na Identidade (`Role`) e no Shared Kernel (`roles.ts`), porque o kernel não importa contextos; `role.spec.ts` mantém os dois iguais.
+- O valor `OPERATOR` existe na Identidade (`Role`) e no Shared Kernel (`roles.ts`), porque o kernel não importa contextos; um teste mantém os dois iguais (`identity/infrastructure/http/operator-role.spec.ts`, desde a ADR 0015).
 - O header provisório `x-customer-id` deixou de existir: só a função `currentCustomerOf` mudou, e controllers e casos de uso seguiram recebendo um `customerId`.
