@@ -3,7 +3,7 @@
 Cada erro de domínio tem um `code` estável (ADR 0003). Clientes da API devem decidir pelo `code`, nunca pela mensagem, que pode mudar.
 O status HTTP é definido na infraestrutura: cada contexto declara o seu mapa (`<contexto>/infrastructure/http/*-error-status.ts`), e o teste `src/app-error-status.spec.ts` confere que ele é igual a esta tabela.
 
-Toda resposta de erro tem o formato `{ "error": { "code": "...", "message": "..." } }`.
+Toda resposta de erro tem o formato `{ "error": { "code": "...", "message": "..." } }`. Os códigos que cada rota pode devolver estão no documento OpenAPI (`/docs`), agrupados por status.
 
 ## Shared Kernel
 

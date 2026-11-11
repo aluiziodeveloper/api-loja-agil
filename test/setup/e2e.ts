@@ -4,6 +4,7 @@ import { PrismaDatabase } from '../../src/shared/infrastructure/database/prisma-
 import { resetDatabase } from '../../src/shared/infrastructure/database/__tests__/reset-database.js';
 import { authAs } from './auth.js';
 import { createTestApp } from './create-test-app.js';
+import { OpenApiConformance } from './open-api-conformance.js';
 import { TestClient } from './test-client.js';
 
 type Headers = Record<string, string>;
@@ -15,6 +16,7 @@ type Headers = Record<string, string>;
  */
 export class E2EContext {
   private application?: NestFastifyApplication;
+  private conformance?: OpenApiConformance;
 
   get app(): NestFastifyApplication {
     if (!this.application) {
@@ -40,8 +42,11 @@ export class E2EContext {
     }));
   }
 
+  /** O documento é lido uma vez, como um cliente da API o leria. */
   async start(): Promise<void> {
     this.application = await createTestApp();
+    const document = await this.application.inject('/docs-json');
+    this.conformance = new OpenApiConformance(document.json());
   }
 
   async reset(): Promise<void> {
@@ -53,7 +58,12 @@ export class E2EContext {
   }
 
   private client(headers: () => Promise<Headers>): TestClient {
-    return new TestClient({ app: () => this.app, headers });
+    return new TestClient({
+      app: () => this.app,
+      headers,
+      check: (method, url, response) =>
+        this.conformance?.check(method, url, response),
+    });
   }
 }
 
