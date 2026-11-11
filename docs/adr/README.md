@@ -16,5 +16,6 @@
 | [0012](0012-persistence-with-prisma-behind-repositories.md) | Persistência com Prisma, atrás das portas de repositório | aceita |
 | [0013](0013-http-layer-with-nest.md)                        | A camada HTTP no NestJS: um controller por caso de uso   | aceita |
 | [0014](0014-authentication-with-jwt-and-global-guards.md)   | Autenticação com JWT e autorização por guards globais    | aceita |
+| [0015](0015-end-to-end-test-strategy.md)                    | Estratégia dos testes end-to-end                         | aceita |
 
 Para uma nova decisão, copie `template.md` com o próximo número.
