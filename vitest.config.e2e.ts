@@ -11,7 +11,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['test/**/*.e2e-spec.ts'],
-    globalSetup: ['test/setup/migrate-test-database.ts'],
+    globalSetup: ['test/setup/migrate-e2e-databases.ts'],
     setupFiles: ['test/setup/use-worker-database.ts'],
     maxWorkers: E2E_WORKERS,
     env: {

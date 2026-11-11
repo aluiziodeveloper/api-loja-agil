@@ -1,12 +1,13 @@
 import { execSync } from 'node:child_process';
-import { E2E_WORKERS, e2eDatabaseUrl } from './e2e-databases.js';
 
-/** Antes da suíte: um banco por worker, com as migrations aplicadas. */
+/** Antes da suíte: aplica as migrations no banco de testes, nunca no de desenvolvimento. */
 export default function setup(): void {
-  for (let worker = 1; worker <= E2E_WORKERS; worker++) {
-    execSync('npx prisma migrate deploy', {
-      stdio: 'inherit',
-      env: { ...process.env, DATABASE_URL: e2eDatabaseUrl(worker) },
-    });
+  const url = process.env.DATABASE_URL_TEST;
+  if (!url) {
+    throw new Error('DATABASE_URL_TEST is not set');
   }
+  execSync('npx prisma migrate deploy', {
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: url },
+  });
 }
