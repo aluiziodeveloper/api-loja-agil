@@ -1,0 +1,35 @@
+// Estoque. O histórico só cresce: movimentações nunca são alteradas nem apagadas.
+
+enum StockMovementType {
+  RECEIPT
+  ADJUSTMENT
+  RESERVATION
+  RELEASE
+  COMMIT
+}
+
+model StockItem {
+  id           String          @id @db.Uuid
+  sku          String          @unique @db.VarChar(20)
+  onHand       Int             @map("on_hand")
+  reserved     Int
+  minimumLevel Int             @map("minimum_level")
+  movements    StockMovement[]
+
+  @@map("stock_items")
+}
+
+/// `id` crescente: desempata movimentações do mesmo milissegundo pela ordem de gravação.
+model StockMovement {
+  id             BigInt            @id @default(autoincrement())
+  stockItemId    String            @map("stock_item_id") @db.Uuid
+  type           StockMovementType
+  onHandChange   Int               @map("on_hand_change")
+  reservedChange Int               @map("reserved_change")
+  reason         String?
+  occurredAt     DateTime          @map("occurred_at")
+  stockItem      StockItem         @relation(fields: [stockItemId], references: [id])
+
+  @@index([stockItemId, occurredAt])
+  @@map("stock_movements")
+}
