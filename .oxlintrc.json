@@ -25,7 +25,12 @@
   },
   "overrides": [
     {
-      "files": ["**/*.spec.ts", "**/*.e2e-spec.ts"],
+      "files": [
+        "**/*.spec.ts",
+        "**/*.e2e-spec.ts",
+        "**/*.int-spec.ts",
+        "**/*.contract.ts"
+      ],
       "rules": {
         "eslint/max-lines-per-function": "off",
         "eslint/max-lines": "off",
