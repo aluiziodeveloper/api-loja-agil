@@ -44,7 +44,8 @@ export class InMemoryUserRepository implements UserRepository {
     return this.restore(all.find((snapshot) => snapshot.email === address));
   }
 
-  async findAll(): Promise<User[]> {
+  /** Só para os testes: a porta não tem "listar tudo", só a busca paginada. */
+  all(): User[] {
     return [...this.snapshots.values()].map((snapshot) =>
       User.restore(snapshot),
     );

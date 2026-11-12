@@ -66,6 +66,6 @@ describe('SignUpUseCase', () => {
       }),
     ).rejects.toThrow(WeakPasswordError);
 
-    expect(await users.findAll()).toEqual([]);
+    expect(users.all()).toEqual([]);
   });
 });

@@ -13,6 +13,10 @@ export class UserBuilder {
     role: Role.CUSTOMER,
   };
 
+  withId(id: string): this {
+    return this.with({ id });
+  }
+
   withName(name: string): this {
     return this.with({ name });
   }

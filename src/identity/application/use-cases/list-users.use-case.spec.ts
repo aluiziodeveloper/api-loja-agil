@@ -41,17 +41,23 @@ describe('ListUsersUseCase', () => {
   });
 
   it('should pass the page, the sort and the filter to the search', async () => {
-    await users.save(aUser().withName('Ana Silva').build());
-    await users.save(aUser().withName('Bruno Lima').build());
-    await users.save(aUser().withName('Carla Dias').build());
+    for (const [name, email] of [
+      ['Ana Silva', 'ana@lojaagil.com'],
+      ['Bruno Lima', 'bruno@lojaagil.com'],
+      ['Carla Dias', 'carla@lojaagil.com'],
+    ]) {
+      await users.save(
+        aUser().withName(`${name}`).withEmail(`${email}`).build(),
+      );
+    }
 
     const page = await listUsers.execute({
       perPage: 1,
       sortDirection: 'desc',
-      filter: 'a',
+      filter: 'n',
     });
 
-    expect(page.items.map((user) => user.name)).toEqual(['Carla Dias']);
-    expect(page).toMatchObject({ total: 3, lastPage: 3 });
+    expect(page.items.map((user) => user.name)).toEqual(['Bruno Lima']);
+    expect(page).toMatchObject({ total: 2, lastPage: 2 });
   });
 });

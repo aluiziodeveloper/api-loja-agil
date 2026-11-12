@@ -12,7 +12,6 @@ export abstract class UserRepository {
   abstract save(user: User): Promise<void>;
   abstract findById(id: UniqueId): Promise<User | null>;
   abstract findByEmail(email: Email): Promise<User | null>;
-  abstract findAll(): Promise<User[]>;
   abstract search(params: UserSearchParams): Promise<SearchResult<User>>;
   abstract delete(id: UniqueId): Promise<void>;
 }

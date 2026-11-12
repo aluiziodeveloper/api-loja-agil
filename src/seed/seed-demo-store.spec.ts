@@ -44,7 +44,7 @@ describe('seedDemoStore', () => {
     const report = await seedDemoStore(resolve);
 
     expect(report.every((line) => line.endsWith('criado'))).toBe(true);
-    const roles = (await users.findAll()).map((user) => user.toSnapshot().role);
+    const roles = users.all().map((user) => user.toSnapshot().role);
     expect(roles.sort()).toEqual(['CUSTOMER', 'CUSTOMER', 'OPERATOR']);
     for (const product of DEMO_STORE.products) {
       await expect(onHandOf(product.sku)).resolves.toBe(product.onHand);
@@ -60,7 +60,7 @@ describe('seedDemoStore', () => {
     const report = await seedDemoStore(resolve);
 
     expect(report.every((line) => line.endsWith('já existia'))).toBe(true);
-    expect(await users.findAll()).toHaveLength(3);
+    expect(users.all()).toHaveLength(3);
     for (const product of DEMO_STORE.products) {
       await expect(onHandOf(product.sku)).resolves.toBe(product.onHand);
     }
