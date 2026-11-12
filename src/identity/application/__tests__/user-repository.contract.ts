@@ -61,22 +61,15 @@ export function userRepositoryContract(
     expect(afterSave?.toSnapshot().name).toBe('Ana Souza');
   });
 
-  it('should list every user, in no particular order, and delete one', async () => {
-    const [ana, bruno, carla] = [
-      aUser().build(),
-      aUser().build(),
-      aUser().build(),
-    ];
-    for (const user of [ana, bruno, carla]) {
-      await repository.save(user);
-    }
+  it('should delete only the given user', async () => {
+    const [ana, bruno] = [aUser().build(), aUser().build()];
+    await repository.save(ana);
+    await repository.save(bruno);
 
     await repository.delete(ana.id);
 
-    const ids = (await repository.findAll()).map((user) => user.id.toString());
-    expect(ids.sort()).toEqual(
-      [bruno.id.toString(), carla.id.toString()].sort(),
-    );
+    expect(await repository.findById(ana.id)).toBeNull();
+    expect(await repository.findById(bruno.id)).not.toBeNull();
   });
 
   it('should ignore the deletion of a user that does not exist', async () => {
@@ -123,6 +116,61 @@ export function userRepositoryContract(
     it('should filter by name or email, ignoring case', async () => {
       expect(await namesOf({ filter: 'SOUZA' })).toEqual(['Ana Souza']);
       expect(await namesOf({ filter: 'outra.com' })).toEqual(['Carla Dias']);
+    });
+
+    it('should treat % and _ in the filter as plain text', async () => {
+      await repository.save(
+        aUser().withName('Ana Lima').withEmail('ana_lima@lojaagil.com').build(),
+      );
+      await repository.save(
+        aUser().withName('Ana Lins').withEmail('anaxlima@lojaagil.com').build(),
+      );
+
+      expect(await namesOf({ filter: 'ana_lima' })).toEqual(['Ana Lima']);
+      expect(await namesOf({ filter: '%' })).toEqual([]);
+    });
+
+    it('should break ties by id, so that pages never repeat a user', async () => {
+      const [lower, higher] = [
+        '019a6b7e-0000-7000-8000-000000000001',
+        '019a6b7e-0000-7000-8000-000000000002',
+      ];
+      for (const [id, email] of [
+        [higher, 'davi.2@lojaagil.com'],
+        [lower, 'davi.1@lojaagil.com'],
+      ]) {
+        await repository.save(
+          aUser()
+            .withId(`${id}`)
+            .withName('Davi Rocha')
+            .withEmail(`${email}`)
+            .build(),
+        );
+      }
+
+      const result = await repository.search(
+        userSearchParams({ filter: 'davi' }),
+      );
+
+      expect(result.toOutput().items.map((user) => user.id.toString())).toEqual(
+        [lower, higher],
+      );
+    });
+
+    it('should find accents only when they are typed', async () => {
+      expect(await namesOf({ filter: 'ágata' })).toEqual(['Ágata Reis']);
+      expect(await namesOf({ filter: 'gata r' })).toEqual(['Ágata Reis']);
+      expect(await namesOf({ filter: 'agata r' })).toEqual([]);
+    });
+
+    it('should return an empty page beyond the last one', async () => {
+      const result = await repository.search(userSearchParams({ page: 9 }));
+
+      expect(result.toOutput()).toMatchObject({
+        items: [],
+        total: 4,
+        lastPage: 1,
+      });
     });
 
     it('should cut the requested page and count every match', async () => {

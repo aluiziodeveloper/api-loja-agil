@@ -1,5 +1,6 @@
 import type { Prisma } from '../../../generated/prisma/client.js';
 import { SearchResult } from '../../../shared/application/search/search-result.js';
+import { containsText } from '../../../shared/infrastructure/database/contains-text.js';
 import { pageOf } from '../../../shared/infrastructure/database/page-of.js';
 import type { UserRepository } from '../../application/ports/user.repository.js';
 import type { UserSearchParams } from '../../application/user-search.js';
@@ -16,7 +17,7 @@ function toUser(row: UserSnapshot | null): User | null {
 /** "Contém", sem diferenciar maiúsculas, no nome ou no e-mail. */
 function whereFor(params: UserSearchParams): Prisma.UserWhereInput {
   const filter = params.filter();
-  const contains = { contains: filter ?? '', mode: 'insensitive' } as const;
+  const contains = containsText(filter ?? '');
   return filter ? { OR: [{ name: contains }, { email: contains }] } : {};
 }
 
@@ -44,11 +45,6 @@ export class PrismaUserRepository implements UserRepository {
       .client()
       .user.findUnique({ where: { email: email.toString() } });
     return toUser(row);
-  }
-
-  async findAll(): Promise<User[]> {
-    const rows = await this.database.client().user.findMany();
-    return rows.map((row) => User.restore(row));
   }
 
   /** O campo pedido e, no empate, o id (D17). */
