@@ -9,6 +9,9 @@ export const envSchema = z.object({
   // Quem conhece o segredo emite tokens em nome de qualquer usuário: longo e fora do Git.
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(3600),
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+    .default('info'),
 });
 
 export type Env = z.infer<typeof envSchema>;

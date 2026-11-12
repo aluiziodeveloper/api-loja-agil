@@ -19,6 +19,7 @@ import { AuthGuard } from './shared/infrastructure/auth/auth.guard.js';
 import { AuthModule } from './shared/infrastructure/auth/auth.module.js';
 import { RolesGuard } from './shared/infrastructure/auth/roles.guard.js';
 import { DatabaseModule } from './shared/infrastructure/database/database.module.js';
+import { LoggingModule } from './shared/infrastructure/logging/logging.module.js';
 import { EnvelopeInterceptor } from './shared/infrastructure/http/envelope.interceptor.js';
 import { ErrorResponseFilter } from './shared/infrastructure/http/error-response.filter.js';
 
@@ -29,6 +30,7 @@ import { ErrorResponseFilter } from './shared/infrastructure/http/error-response
       cache: true,
       validate: validateEnv,
     }),
+    LoggingModule,
     DatabaseModule,
     AuthModule,
     HealthModule,
