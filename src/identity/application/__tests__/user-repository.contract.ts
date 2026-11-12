@@ -1,8 +1,10 @@
+import type { SearchParamsInput } from '../../../shared/application/search/search-params.js';
 import { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
 import { aUser } from '../../domain/__tests__/user.builder.js';
 import { Email } from '../../domain/email.value-object.js';
 import { Name } from '../../domain/name.value-object.js';
 import type { UserRepository } from '../ports/user.repository.js';
+import { userSearchParams } from '../user-search.js';
 
 /**
  * O comportamento que toda implementação de `UserRepository` precisa ter. O
@@ -79,5 +81,62 @@ export function userRepositoryContract(
 
   it('should ignore the deletion of a user that does not exist', async () => {
     await expect(repository.delete(UniqueId.create())).resolves.toBeUndefined();
+  });
+
+  describe('search', () => {
+    const people = [
+      ['Bruno Lima', 'bruno@lojaagil.com'],
+      ['Ágata Reis', 'agata@lojaagil.com'],
+      ['Carla Dias', 'carla@outra.com'],
+      ['Ana Souza', 'zeca@lojaagil.com'],
+    ];
+
+    beforeEach(async () => {
+      for (const [name = '', email = ''] of people) {
+        await repository.save(aUser().withName(name).withEmail(email).build());
+      }
+    });
+
+    async function namesOf(input: SearchParamsInput): Promise<string[]> {
+      const result = await repository.search(userSearchParams(input));
+      return result.toOutput().items.map((user) => user.toSnapshot().name);
+    }
+
+    it('should sort by name in Portuguese by default', async () => {
+      expect(await namesOf({})).toEqual([
+        'Ágata Reis',
+        'Ana Souza',
+        'Bruno Lima',
+        'Carla Dias',
+      ]);
+    });
+
+    it('should sort by email when asked', async () => {
+      expect(await namesOf({ sort: 'email', sortDirection: 'desc' })).toEqual([
+        'Ana Souza',
+        'Carla Dias',
+        'Bruno Lima',
+        'Ágata Reis',
+      ]);
+    });
+
+    it('should filter by name or email, ignoring case', async () => {
+      expect(await namesOf({ filter: 'SOUZA' })).toEqual(['Ana Souza']);
+      expect(await namesOf({ filter: 'outra.com' })).toEqual(['Carla Dias']);
+    });
+
+    it('should cut the requested page and count every match', async () => {
+      const result = await repository.search(
+        userSearchParams({ page: 2, perPage: 3 }),
+      );
+
+      expect(result.toOutput()).toMatchObject({
+        total: 4,
+        page: 2,
+        perPage: 3,
+        lastPage: 2,
+      });
+      expect(result.toOutput().items).toHaveLength(1);
+    });
   });
 }
