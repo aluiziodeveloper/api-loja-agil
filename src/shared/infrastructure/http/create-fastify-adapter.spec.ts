@@ -55,4 +55,39 @@ describe('createFastifyAdapter', () => {
 
     expect(lines).toEqual([]);
   });
+
+  it('should ask the client to drop the connection when the answer goes out during the shutdown', async () => {
+    const fastify = createFastifyAdapter({
+      NODE_ENV: 'production',
+      LOG_LEVEL: 'silent',
+    }).getInstance();
+    let release = (): void => {};
+    let started = false;
+    fastify.get('/slow', async () => {
+      started = true;
+      await new Promise<void>((resolve) => (release = resolve));
+      return {};
+    });
+    let shuttingDown = false;
+    fastify.addHook('preClose', async () => {
+      shuttingDown = true;
+    });
+    const url = await fastify.listen({ port: 0, host: '127.0.0.1' });
+    const inFlight = fetch(`${url}/slow`);
+    await vi.waitUntil(() => started);
+
+    const closing = fastify.close();
+    await vi.waitUntil(() => shuttingDown);
+    release();
+    const response = await inFlight;
+    await closing;
+
+    expect(response.headers.get('connection')).toBe('close');
+  });
+
+  it('should keep the connection while the server is running', async () => {
+    const { response } = await answer('/ping');
+
+    expect(response.headers.connection).not.toBe('close');
+  });
 });

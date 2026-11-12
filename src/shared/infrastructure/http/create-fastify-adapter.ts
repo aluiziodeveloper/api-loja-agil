@@ -1,5 +1,10 @@
 import { FastifyAdapter } from '@nestjs/platform-fastify';
-import { type FastifyReply, type FastifyRequest, LogController } from 'fastify';
+import {
+  type FastifyInstance,
+  type FastifyReply,
+  type FastifyRequest,
+  LogController,
+} from 'fastify';
 import { pino, type DestinationStream } from 'pino';
 import {
   isHealthProbe,
@@ -51,6 +56,24 @@ async function echoRequestId(
 }
 
 /**
+ * No encerramento, o servidor espera as requisições em andamento. Mas uma
+ * conexão keep-alive que fica ociosa depois de responder segura o
+ * encerramento até o timeout dela (72 s no Fastify). Com `Connection: close`
+ * nas respostas que ainda saem, o cliente solta a conexão na hora.
+ */
+function releaseConnectionsWhenClosing(fastify: FastifyInstance): void {
+  let closing = false;
+  fastify.addHook('preClose', async () => {
+    closing = true;
+  });
+  fastify.addHook('onSend', async (_request, reply) => {
+    if (closing) {
+      void reply.header('connection', 'close');
+    }
+  });
+}
+
+/**
  * O Fastify já usa o pino e dá um id a cada requisição; as linhas daquela
  * requisição levam esse id (`reqId`). A resposta devolve o mesmo id, para o
  * cliente citar num chamado e alguém achar as linhas dela.
@@ -65,5 +88,6 @@ export function createFastifyAdapter(
     logController: new RequestLogController(),
   });
   adapter.getInstance().addHook('onRequest', echoRequestId);
+  releaseConnectionsWhenClosing(adapter.getInstance());
   return adapter;
 }
