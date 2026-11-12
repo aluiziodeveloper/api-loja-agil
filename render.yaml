@@ -1,0 +1,41 @@
+# Blueprint do Render: a plataforma de exemplo do curso. Outra que rode uma
+# imagem Docker, receba um SIGTERM e consulte um health check serve igual.
+services:
+  - type: web
+    name: api-loja-agil
+    runtime: image
+    image:
+      # O CD publica cada commit da main; o deploy hook escolhe a tag do sha.
+      url: ghcr.io/aluiziodeveloper/api-loja-agil:latest
+      # O pacote é privado: uma credencial do GHCR (token com read:packages)
+      # cadastrada no workspace do Render com este nome.
+      creds:
+        fromRegistryCreds:
+          name: ghcr
+    # Pago: o pre-deploy command não existe no plano free.
+    plan: starter
+    region: virginia
+    # Só recebe tráfego quando responde com o banco de pé.
+    healthCheckPath: /health/ready
+    # O passo de release, com a mesma imagem, antes de a versão nova subir.
+    preDeployCommand: node_modules/.bin/prisma migrate deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        fromDatabase:
+          name: loja-agil-db
+          property: connectionString
+      # 256 bits aleatórios, gerados uma vez pelo Render; nunca no Git.
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: loja-agil-db
+    databaseName: loja_agil
+    user: loja_agil
+    plan: 0.1c-256mb
+    region: virginia
+    postgresMajorVersion: '18'

@@ -44,6 +44,8 @@ jobs:
     env:
       SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
       DATABASE_URL: postgresql://postgres:docker@127.0.0.1:5432/loja_agil?schema=public
+      # Opcional: sem o secret, o CD só publica a imagem.
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -90,3 +92,9 @@ jobs:
           docker tag "$IMAGE:$SHA" "$IMAGE:latest"
           docker push "$IMAGE:$SHA"
           docker push "$IMAGE:latest"
+
+      # O Render não acompanha o registro: o hook pede o deploy da tag do sha,
+      # a mesma imagem que passou no smoke test.
+      - name: Deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL&imgURL=$IMAGE:$SHA"
