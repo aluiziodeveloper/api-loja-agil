@@ -1,4 +1,5 @@
-import { OPERATOR } from '../setup/auth.js';
+import { randomUUID } from 'node:crypto';
+import { customer, OPERATOR } from '../setup/auth.js';
 import { useTestApp } from '../setup/e2e.js';
 import { dataOf } from '../setup/test-client.js';
 
@@ -54,6 +55,24 @@ describe('Products (e2e)', () => {
     const response = await operator.get(`/products/${id}`);
 
     expect(response.json()).toEqual({ data: { id, ...caneca, active: true } });
+  });
+
+  it('should show an inactive product only to the operator', async () => {
+    const id = await createdId();
+    await operator.post(`/products/${id}/deactivate`);
+
+    const toAnyone = await e2e.api.get(`/products/${id}`);
+    const toACustomer = await e2e
+      .as(customer(randomUUID()))
+      .get(`/products/${id}`);
+    const toTheOperator = await operator.get(`/products/${id}`);
+
+    expect(toAnyone.statusCode).toBe(404);
+    expect(toAnyone.json()).toMatchObject({
+      error: { code: 'PRODUCT_NOT_FOUND' },
+    });
+    expect(toACustomer.statusCode).toBe(404);
+    expect(dataOf<Product>(toTheOperator).active).toBe(false);
   });
 
   it('should change only what the PATCH brings', async () => {

@@ -60,7 +60,7 @@ Para explorar a API em desenvolvimento, `npm run db:seed` cria a operadora `olga
 
 O primeiro operador é promovido no servidor, com `npm run build && npm run operator:promote -- <email>`; depois, um operador promove outro por `POST /operators`.
 
-As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort` (`name`, `price`, `sku`), `filter` e `includeInactive`, e a de usuários, `sort` (`name`, `email`) e `filter`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `GET /health/ready`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
+As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort` (`name`, `price`, `sku`), `filter` e `includeInactive` (só para o perfil `OPERATOR`; um produto inativo também só aparece para ele em `GET /products/:id`), e a de usuários, `sort` (`name`, `email`) e `filter`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `GET /health/ready`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
 
 ## Logs
 

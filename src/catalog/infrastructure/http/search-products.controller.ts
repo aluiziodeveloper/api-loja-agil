@@ -22,9 +22,15 @@ import {
   presentProduct,
   type ProductResponse,
 } from './product.presenter.js';
+import type { Principal } from '../../../shared/infrastructure/auth/access-tokens.js';
+import {
+  OptionalPrincipal,
+  requireRole,
+} from '../../../shared/infrastructure/auth/principal.js';
 import { Public } from '../../../shared/infrastructure/auth/public.decorator.js';
+import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 
-/** `?includeInactive=true` traz também os produtos desativados. */
+/** `?includeInactive=true` traz também os produtos desativados, só para o operador. */
 export const searchProductsQuery = searchQuery.extend({
   sort: sortQuery(productSearchOptions),
   includeInactive: z.stringbool().optional(),
@@ -43,13 +49,17 @@ export class SearchProductsController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Busca produtos, com filtro, ordenação e página.' })
-  @ApiErrors('INVALID_SEARCH_PARAMS')
+  @ApiErrors('INVALID_SEARCH_PARAMS', 'UNAUTHORIZED', 'FORBIDDEN')
   @ApiQueryOf(searchProductsQuery)
   @ApiPage(productResponse)
   async handle(
     @Query(new ZodValidationPipe(searchProductsQuery))
     { includeInactive = false, ...query }: SearchProductsQuery,
+    @OptionalPrincipal() principal: Principal | undefined,
   ): Promise<Page<ProductResponse>> {
+    if (includeInactive) {
+      requireRole(principal, OPERATOR);
+    }
     const output = await this.searchProducts.execute({
       ...query,
       activeOnly: !includeInactive,
