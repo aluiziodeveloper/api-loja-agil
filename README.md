@@ -104,5 +104,13 @@ src/
     <contexto>.module.ts  composição do contexto no NestJS
   integration/ liga os contextos: adaptadores e inscrições nos eventos (ADR 0011)
   generated/   client do Prisma, gerado (fora do Git)
-prisma/        schema por co
+prisma/        schema por contexto e migrations
+katas/         exercícios do curso, fora do build
 ```
+
+## Documentação
+
+- [Decisões de arquitetura (ADRs)](docs/adr/README.md)
+- [Glossário: linguagem ubíqua](docs/glossary.md)
+- [Códigos de erro da API](docs/error-codes.md)
+- Documentação OpenAPI: `/docs` com a aplicação no ar

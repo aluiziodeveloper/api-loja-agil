@@ -18,8 +18,9 @@ COPY nest-cli.json tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build
 
-# 3. Execução: Node, as dependências de produção e o JavaScript. Sem compilador,
-#    sem testes, sem código-fonte.
+# 3. Execução: Node, as dependências de produção e o JavaScript. Sem testes e
+#    sem código-fonte. O Prisma CLI (e o TypeScript) vêm junto, como peers do
+#    @prisma/client: é o CLI que aplica as migrations no passo de release.
 FROM node:26-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
