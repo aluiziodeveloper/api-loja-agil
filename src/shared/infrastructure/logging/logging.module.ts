@@ -6,10 +6,11 @@ import { loggerOptions } from './logger-options.js';
 import { ShutdownLog } from './shutdown-log.js';
 
 /**
- * O logger do Nest vira o pino. Dentro de uma requisição, ele usa o logger
- * dela, o do Fastify, com o `reqId` (`useExisting`). Fora de uma requisição,
- * na inicialização por exemplo, usa um pino com as mesmas opções: o mesmo
- * nível, o mesmo formato e os mesmos campos escondidos.
+ * O logger do Nest vira um pino com as mesmas opções do Fastify: o mesmo
+ * nível, o mesmo formato e os mesmos campos escondidos. Ele não conhece a
+ * requisição, então as linhas dele saem sem `reqId`; o que precisa do
+ * `reqId` escreve em `request.log`, como o filtro de erros. `useExisting`
+ * deixa o log das requisições com o Fastify, sem o middleware do pino-http.
  */
 @Module({
   imports: [
