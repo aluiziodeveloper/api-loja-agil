@@ -199,6 +199,15 @@ export function productRepositoryContract(
       expect(result.toOutput().total).toBe(4);
     });
 
+    it.each(['%', '_', '\\'])(
+      'should treat %s in the filter as plain text',
+      async (filter) => {
+        const result = await search({ filter });
+
+        expect(result.toOutput().total).toBe(0);
+      },
+    );
+
     it('should return an empty page beyond the last one', async () => {
       const result = await search({ page: 9 });
 

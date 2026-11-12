@@ -19,7 +19,7 @@ describe('PromoteToOperatorUseCase', () => {
     const output = await promote.execute({ email: 'ANA@lojaagil.com' });
 
     expect(output).toMatchObject({ name: 'Ana Silva', role: 'OPERATOR' });
-    const [stored] = await users.findAll();
+    const [stored] = users.all();
     expect(stored.toSnapshot().role).toBe('OPERATOR');
   });
 

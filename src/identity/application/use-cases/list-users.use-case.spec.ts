@@ -12,8 +12,14 @@ describe('ListUsersUseCase', () => {
     listUsers = new ListUsersUseCase(users);
   });
 
-  it('should return an empty list when there are no users', async () => {
-    expect(await listUsers.execute()).toEqual([]);
+  it('should return an empty page when there are no users', async () => {
+    expect(await listUsers.execute({})).toEqual({
+      items: [],
+      total: 0,
+      page: 1,
+      perPage: 15,
+      lastPage: 1,
+    });
   });
 
   it('should list every user sorted by name, without passwords', async () => {
@@ -23,7 +29,7 @@ describe('ListUsersUseCase', () => {
     );
     await users.save(aUser().withName('Álvaro Lima').build());
 
-    const output = await listUsers.execute();
+    const { items: output } = await listUsers.execute({});
 
     expect(output.map((user) => user.name)).toEqual([
       'Álvaro Lima',
@@ -32,5 +38,26 @@ describe('ListUsersUseCase', () => {
     ]);
     expect(output[1]).toMatchObject({ role: 'OPERATOR' });
     expect(output[0]).not.toHaveProperty('passwordHash');
+  });
+
+  it('should pass the page, the sort and the filter to the search', async () => {
+    for (const [name, email] of [
+      ['Ana Silva', 'ana@lojaagil.com'],
+      ['Bruno Lima', 'bruno@lojaagil.com'],
+      ['Carla Dias', 'carla@lojaagil.com'],
+    ]) {
+      await users.save(
+        aUser().withName(`${name}`).withEmail(`${email}`).build(),
+      );
+    }
+
+    const page = await listUsers.execute({
+      perPage: 1,
+      sortDirection: 'desc',
+      filter: 'n',
+    });
+
+    expect(page.items.map((user) => user.name)).toEqual(['Bruno Lima']);
+    expect(page).toMatchObject({ total: 2, lastPage: 2 });
   });
 });

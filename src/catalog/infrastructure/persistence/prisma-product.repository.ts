@@ -2,6 +2,7 @@ import type { Prisma } from '../../../generated/prisma/client.js';
 import { SearchResult } from '../../../shared/application/search/search-result.js';
 import type { Sku } from '../../../shared/domain/sku.value-object.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
+import { containsText } from '../../../shared/infrastructure/database/contains-text.js';
 import { pageOf } from '../../../shared/infrastructure/database/page-of.js';
 import type { PrismaDatabase } from '../../../shared/infrastructure/database/prisma-database.js';
 import type { ProductRepository } from '../../application/ports/product.repository.js';
@@ -29,7 +30,7 @@ function whereFor({
   activeOnly,
 }: ProductSearchCriteria): Prisma.ProductWhereInput {
   const filter = params.filter();
-  const contains = { contains: filter ?? '', mode: 'insensitive' } as const;
+  const contains = containsText(filter ?? '');
   return {
     ...(activeOnly ? { active: true } : {}),
     ...(filter ? { OR: [{ name: contains }, { sku: contains }] } : {}),

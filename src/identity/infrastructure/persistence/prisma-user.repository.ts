@@ -1,4 +1,9 @@
+import type { Prisma } from '../../../generated/prisma/client.js';
+import { SearchResult } from '../../../shared/application/search/search-result.js';
+import { containsText } from '../../../shared/infrastructure/database/contains-text.js';
+import { pageOf } from '../../../shared/infrastructure/database/page-of.js';
 import type { UserRepository } from '../../application/ports/user.repository.js';
+import type { UserSearchParams } from '../../application/user-search.js';
 import type { Email } from '../../domain/email.value-object.js';
 import { User, type UserSnapshot } from '../../domain/user.entity.js';
 import type { UniqueId } from '../../../shared/domain/unique-id.value-object.js';
@@ -7,6 +12,13 @@ import type { PrismaDatabase } from '../../../shared/infrastructure/database/pri
 /** A tabela `users` espelha o snapshot: a linha já é o contrato com a borda. */
 function toUser(row: UserSnapshot | null): User | null {
   return row ? User.restore(row) : null;
+}
+
+/** "Contém", sem diferenciar maiúsculas, no nome ou no e-mail. */
+function whereFor(params: UserSearchParams): Prisma.UserWhereInput {
+  const filter = params.filter();
+  const contains = containsText(filter ?? '');
+  return filter ? { OR: [{ name: contains }, { email: contains }] } : {};
 }
 
 export class PrismaUserRepository implements UserRepository {
@@ -35,9 +47,20 @@ export class PrismaUserRepository implements UserRepository {
     return toUser(row);
   }
 
-  async findAll(): Promise<User[]> {
-    const rows = await this.database.client().user.findMany();
-    return rows.map((row) => User.restore(row));
+  /** O campo pedido e, no empate, o id (D17). */
+  async search(params: UserSearchParams): Promise<SearchResult<User>> {
+    const where = whereFor(params);
+    const orderBy = [
+      { [params.sort()]: params.sortDirection() },
+      { id: 'asc' as const },
+    ];
+    const client = this.database.client();
+    const [rows, total] = await Promise.all([
+      client.user.findMany({ where, ...pageOf(params, orderBy) }),
+      client.user.count({ where }),
+    ]);
+    const items = rows.map((row) => User.restore(row));
+    return SearchResult.create({ items, total, params });
   }
 
   /** `deleteMany` não falha quando o usuário não existe, como pede o contrato. */

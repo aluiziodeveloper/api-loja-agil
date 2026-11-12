@@ -21,6 +21,31 @@ describe('GET /users (e2e)', () => {
         expect.objectContaining({ name: 'Ana Souza' }),
         expect.objectContaining({ name: 'Bruno Lima' }),
       ],
+      meta: { total: 2, page: 1, perPage: 15, lastPage: 1 },
+    });
+  });
+
+  it('should page, sort and filter the users', async () => {
+    await signUp('Bruno Lima', 'bruno@loja.dev');
+    await signUp('Ana Souza', 'ana@loja.dev');
+    await signUp('Carla Dias', 'carla@outra.dev');
+
+    const response = await operator.get(
+      '/users?filter=loja.dev&sort=email&sortDirection=desc&perPage=1',
+    );
+
+    expect(response.json()).toEqual({
+      data: [expect.objectContaining({ name: 'Bruno Lima' })],
+      meta: { total: 2, page: 1, perPage: 1, lastPage: 2 },
+    });
+  });
+
+  it('should refuse a sort field that is not offered', async () => {
+    const response = await operator.get('/users?sort=password');
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({
+      error: { code: 'INVALID_SEARCH_PARAMS' },
     });
   });
 

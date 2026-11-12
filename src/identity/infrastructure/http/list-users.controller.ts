@@ -1,7 +1,17 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiData } from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
-import { z } from 'zod';
+import type { z } from 'zod';
+import {
+  ApiErrors,
+  ApiPage,
+  ApiQueryOf,
+} from '../../../shared/infrastructure/openapi/api-docs.decorators.js';
+import {
+  type Page,
+  presentPage,
+} from '../../../shared/infrastructure/http/page.js';
+import { searchQuery } from '../../../shared/infrastructure/http/search-query.js';
+import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { ListUsersUseCase } from '../../application/use-cases/list-users.use-case.js';
 import {
   userResponse,
@@ -11,6 +21,11 @@ import {
 import { OPERATOR } from '../../../shared/infrastructure/auth/roles.js';
 import { Roles } from '../../../shared/infrastructure/auth/roles.decorator.js';
 
+/** Ordenação por `name` ou `email`; o filtro procura nos dois. */
+export const listUsersQuery = searchQuery;
+
+type ListUsersQuery = z.infer<typeof listUsersQuery>;
+
 @ApiTags('Identidade')
 @Controller('users')
 export class ListUsersController {
@@ -19,11 +34,16 @@ export class ListUsersController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lista os usuários.' })
-  @ApiData(z.array(userResponse))
+  @ApiOperation({
+    summary: 'Lista os usuários, com filtro, ordenação e página.',
+  })
+  @ApiErrors('INVALID_SEARCH_PARAMS')
+  @ApiQueryOf(listUsersQuery)
+  @ApiPage(userResponse)
   @Roles(OPERATOR)
-  async handle(): Promise<UserResponse[]> {
-    const users = await this.listUsers.execute();
-    return users.map(presentUser);
+  async handle(
+    @Query(new ZodValidationPipe(listUsersQuery)) query: ListUsersQuery,
+  ): Promise<Page<UserResponse>> {
+    return presentPage(await this.listUsers.execute(query), presentUser);
   }
 }
