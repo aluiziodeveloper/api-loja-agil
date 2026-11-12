@@ -80,6 +80,13 @@ Para testar na máquina o que vai para produção (migrations e aplicação, na 
 docker compose --profile prod up --build app-prod
 ```
 
+## Entrega contínua
+
+Depois de o CI passar na `main`, o workflow `CD` monta a imagem de produção, faz um smoke test com ela (migrations num banco vazio, `/health/ready` respondendo e um `SIGTERM` com saída 0) e publica no GitHub Container Registry:
+
+- `ghcr.io/aluiziodeveloper/api-loja-agil:<sha do commit>`, a versão exata;
+- `ghcr.io/aluiziodeveloper/api-loja-agil:latest`, a mais recente.
+
 ## Estrutura
 
 ```text

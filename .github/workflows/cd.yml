@@ -1,0 +1,92 @@
+name: CD
+
+# Publica a imagem só depois de o CI passar na main: o que vai para o registro
+# é exatamente o commit que o CI aprovou.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# Uma publicação de cada vez, na ordem dos commits; nenhuma é cancelada no meio.
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  publish:
+    name: Publish image
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: docker
+          POSTGRES_DB: loja_agil
+          POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=pt-BR
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d loja_agil"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      DATABASE_URL: postgresql://postgres:docker@127.0.0.1:5432/loja_agil?schema=public
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: runtime
+          load: true
+          tags: ${{ env.IMAGE }}:${{ env.SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # A imagem que vai ser publicada sobe de verdade: migrations num banco
+      # vazio, a aplicação pronta e um encerramento limpo no SIGTERM.
+      - name: Smoke test
+        run: |
+          docker run --rm --network host -e DATABASE_URL "$IMAGE:$SHA" \
+            node_modules/.bin/prisma migrate deploy
+          docker run -d --name smoke --network host \
+            -e DATABASE_URL -e JWT_SECRET="$(openssl rand -base64 48)" \
+            "$IMAGE:$SHA"
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:3000/health/ready && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/health/ready
+          docker stop smoke
+          test "$(docker inspect smoke --format '{{.State.ExitCode}}')" = 0
+          docker logs smoke
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push
+        run: |
+          docker tag "$IMAGE:$SHA" "$IMAGE:latest"
+          docker push "$IMAGE:$SHA"
+          docker push "$IMAGE:latest"
