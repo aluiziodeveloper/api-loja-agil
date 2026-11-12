@@ -4,6 +4,18 @@ import { UniqueId } from './unique-id.value-object.js';
 const UUID_V7 =
   /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
+/**
+ * O UUID v7 guarda o milissegundo; dentro do mesmo milissegundo, a ordem é
+ * do acaso. Um `setTimeout` de 2 ms não garante que o relógio andou: com a
+ * máquina ocupada, ele já voltou em 0,3 ms. Esperar o relógio é o que vale.
+ */
+async function nextMillisecond(): Promise<void> {
+  const start = Date.now();
+  while (Date.now() <= start) {
+    await new Promise((resolve) => setTimeout(resolve, 1));
+  }
+}
+
 describe('UniqueId', () => {
   describe('create', () => {
     it('should generate a UUID v7', () => {
@@ -21,7 +33,7 @@ describe('UniqueId', () => {
 
     it('should generate values that sort by creation time', async () => {
       const older = UniqueId.create();
-      await new Promise((resolve) => setTimeout(resolve, 2));
+      await nextMillisecond();
 
       const newer = UniqueId.create();
 
