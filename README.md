@@ -70,6 +70,16 @@ Uma linha JSON por evento, na saída padrão, com o nível em `LOG_LEVEL` (`info
 
 No `SIGTERM` (ou `SIGINT`), a aplicação para de aceitar conexões, termina as requisições em andamento (as respostas que ainda saem levam `Connection: close`, para o keep-alive não segurar o encerramento), desconecta o banco e sai com código 0. O log registra o sinal recebido e o fim.
 
+## Imagem de produção
+
+O `Dockerfile` monta a imagem em três estágios (dependências de produção, build e execução); só o último é publicado. A imagem roda como o usuário `node` e com o Node como PID 1 (`CMD ["node", "dist/main.js"]`), para receber o `SIGTERM` da plataforma. As migrations são um passo à parte, antes de a versão nova subir: `node_modules/.bin/prisma migrate deploy`, com a mesma imagem.
+
+Para testar na máquina o que vai para produção (migrations e aplicação, na porta 3001):
+
+```bash
+docker compose --profile prod up --build app-prod
+```
+
 ## Estrutura
 
 ```text

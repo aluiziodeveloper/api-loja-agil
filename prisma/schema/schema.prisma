@@ -1,7 +1,10 @@
 // Um arquivo por bounded context nesta pasta; este guarda só a configuração.
 generator client {
-  provider = "prisma-client"
-  output   = "../../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../../src/generated/prisma"
+  // Explícito: sem o tsconfig.json por perto (no build da imagem), o padrão
+  // seria importar arquivos .ts, que o Node não carrega depois de compilado.
+  importFileExtension = "js"
 }
 
 datasource db {

@@ -21,6 +21,37 @@ services:
       db:
         condition: service_healthy
 
+  # A imagem de produção, para testar na máquina o que o CD vai publicar:
+  #   docker compose --profile prod up --build app-prod
+  # Fica fora do `docker compose up` comum por causa do perfil.
+  migrate:
+    profiles: [prod]
+    build:
+      context: .
+      target: runtime
+    # O passo de release: aplica as migrations pendentes e termina.
+    command: ['node_modules/.bin/prisma', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: postgresql://postgres:docker@db:5432/loja_agil?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app-prod:
+    profiles: [prod]
+    build:
+      context: .
+      target: runtime
+    environment:
+      DATABASE_URL: postgresql://postgres:docker@db:5432/loja_agil?schema=public
+      # Só para o teste local. Na plataforma, o segredo vem do ambiente dela.
+      JWT_SECRET: local-prod-secret-never-use-in-production
+    ports:
+      - '3001:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   db:
     image: postgres:18-alpine
     environment:
