@@ -1,4 +1,5 @@
-import { OPERATOR } from '../setup/auth.js';
+import { randomUUID } from 'node:crypto';
+import { customer, OPERATOR } from '../setup/auth.js';
 import { useTestApp } from '../setup/e2e.js';
 import { givenProduct, MUG } from '../setup/scenarios.js';
 import { dataOf } from '../setup/test-client.js';
@@ -58,10 +59,26 @@ describe('GET /products (e2e)', () => {
     });
   });
 
-  it('should include inactive products when asked', async () => {
-    const response = await search('?includeInactive=true');
+  it('should include inactive products when the operator asks', async () => {
+    const response = await operator.get('/products?includeInactive=true');
 
     expect(namesOf(response)).toContain('Boné Sprint');
+  });
+
+  it('should answer 401 to anyone without a token who asks for inactive products', async () => {
+    const response = await search('?includeInactive=true');
+
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toMatchObject({ error: { code: 'UNAUTHORIZED' } });
+  });
+
+  it('should answer 403 to a customer who asks for inactive products', async () => {
+    const response = await e2e
+      .as(customer(randomUUID()))
+      .get('/products?includeInactive=true');
+
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toMatchObject({ error: { code: 'FORBIDDEN' } });
   });
 
   it('should answer 400 VALIDATION_FAILED to a page that is not a number', async () => {

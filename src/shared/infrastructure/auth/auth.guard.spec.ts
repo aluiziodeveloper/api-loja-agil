@@ -40,6 +40,29 @@ describe('AuthGuard', () => {
     ).resolves.toBe(true);
   });
 
+  it('should remember who sent a valid token, even to a public route', async () => {
+    const { accessToken } = await tokens.issue(ana);
+    const request: AuthenticatedRequest = {
+      headers: { authorization: `Bearer ${accessToken}` },
+    };
+
+    await expect(guard.canActivate(contextFor('open', request))).resolves.toBe(
+      true,
+    );
+    expect(request.principal).toEqual(ana);
+  });
+
+  it('should let a token it cannot trust into a public route, as anonymous', async () => {
+    const request: AuthenticatedRequest = {
+      headers: { authorization: 'Bearer abc.def.ghi' },
+    };
+
+    await expect(guard.canActivate(contextFor('open', request))).resolves.toBe(
+      true,
+    );
+    expect(request.principal).toBeUndefined();
+  });
+
   it('should let in a valid Bearer token and remember who sent it', async () => {
     const { accessToken } = await tokens.issue(ana);
     const request: AuthenticatedRequest = {

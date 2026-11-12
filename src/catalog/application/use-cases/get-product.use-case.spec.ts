@@ -13,8 +13,8 @@ describe('GetProductUseCase', () => {
     getProduct = new GetProductUseCase(products);
   });
 
-  it('should return the product, active or not', async () => {
-    const product = aProduct().withName('Caneca Ágil').inactive().build();
+  it('should return an active product', async () => {
+    const product = aProduct().withName('Caneca Ágil').build();
     await products.save(product);
 
     const output = await getProduct.execute({
@@ -22,6 +22,26 @@ describe('GetProductUseCase', () => {
     });
 
     expect(output).toEqual(product.toSnapshot());
+  });
+
+  it('should treat an inactive product as unknown, unless asked for it', async () => {
+    const product = aProduct().inactive().build();
+    await products.save(product);
+
+    const result = getProduct.execute({ productId: product.id.toString() });
+
+    await expect(result).rejects.toThrow(ProductNotFoundError);
+  });
+
+  it('should return an inactive product when asked for it', async () => {
+    const product = aProduct().inactive().build();
+    await products.save(product);
+
+    const output = await getProduct.execute({
+      productId: product.id.toString(),
+      activeOnly: false,
+    });
+
     expect(output.active).toBe(false);
   });
 
