@@ -5,21 +5,23 @@ Se um termo não está aqui, ele ainda não faz parte do domínio: discuta antes
 
 ## Identidade & Acesso (`identity`)
 
-| Termo do negócio   | Código                                       | Definição                                                                     |
-| ------------------ | -------------------------------------------- | ----------------------------------------------------------------------------- |
-| Usuário            | `User`                                       | Pessoa com acesso à API, identificada por e-mail                              |
-| Cliente            | `Role.CUSTOMER`                              | Usuário que compra; vê apenas os próprios pedidos                             |
-| Operador           | `Role.OPERATOR`                              | Funcionário que administra catálogo e estoque                                 |
-| Nome               | `Name`                                       | Nome de exibição, de 2 a 100 caracteres                                       |
-| E-mail             | `Email`                                      | Endereço único, normalizado em minúsculas                                     |
-| Senha              | `Password` / `PasswordHash`                  | Segredo com regras mínimas; armazenado apenas como hash                       |
-| Cadastrar-se       | `SignUpUseCase`                              | Cria um cliente; o e-mail não pode estar em uso                               |
-| Entrar             | `SignInUseCase`                              | Confere e-mail e senha; erro único para qualquer falha                        |
-| Usuário cadastrado | `UserRegistered`                             | Evento registrado quando um usuário é criado                                  |
-| Perfil             | `GetProfileUseCase` / `UpdateProfileUseCase` | Dados do próprio usuário: nome e e-mail                                       |
-| Trocar a senha     | `ChangePasswordUseCase`                      | Exige a senha atual; a nova segue as regras mínimas                           |
-| Excluir a conta    | `DeleteAccountUseCase`                       | Remove o próprio usuário                                                      |
-| Listar usuários    | `ListUsersUseCase`                           | Busca usuários por nome ou e-mail, com ordenação e página; só para operadores |
+| Termo do negócio    | Código                                       | Definição                                                                          |
+| ------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Usuário             | `User`                                       | Pessoa com acesso à API, identificada por e-mail                                   |
+| Cliente             | `Role.CUSTOMER`                              | Usuário que compra; vê apenas os próprios pedidos                                  |
+| Operador            | `Role.OPERATOR`                              | Funcionário que administra catálogo, estoque, cupons, usuários e o despacho (RN03) |
+| Perfil de acesso    | `Role`                                       | O que o usuário pode fazer: cliente ou operador                                    |
+| Nome                | `Name`                                       | Nome de exibição, de 2 a 100 caracteres                                            |
+| E-mail              | `Email`                                      | Endereço único, normalizado em minúsculas                                          |
+| Senha               | `Password` / `PasswordHash`                  | Segredo com regras mínimas; armazenado apenas como hash                            |
+| Cadastrar-se        | `SignUpUseCase`                              | Cria um cliente; o e-mail não pode estar em uso                                    |
+| Entrar              | `SignInUseCase`                              | Confere e-mail e senha; erro único para qualquer falha                             |
+| Usuário cadastrado  | `UserRegistered`                             | Evento registrado quando um usuário é criado                                       |
+| Dados do perfil     | `GetProfileUseCase` / `UpdateProfileUseCase` | Dados do próprio usuário: nome e e-mail                                            |
+| Trocar a senha      | `ChangePasswordUseCase`                      | Exige a senha atual; a nova segue as regras mínimas                                |
+| Excluir a conta     | `DeleteAccountUseCase`                       | Remove o próprio usuário                                                           |
+| Listar usuários     | `ListUsersUseCase`                           | Busca usuários por nome ou e-mail, com ordenação e página; só para operadores      |
+| Promover a operador | `PromoteToOperatorUseCase`                   | Dá a um usuário o perfil de operador; o primeiro, só pelo servidor                 |
 
 ## Catálogo (`catalog`)
 

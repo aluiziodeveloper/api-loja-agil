@@ -9,7 +9,7 @@ Regras de negócio violadas (SKU inválido, pedido sem itens, estoque insuficien
 
 ## Decisão
 
-Vamos lançar subclasses de `DomainError`, cada uma com um `code` estável (ex.: `INVALID_SKU`). Um exception filter global na infraestrutura traduz esses erros em respostas HTTP 4xx. `Result/Either` será apresentado em uma aula comparativa, mas não será adotado.
+Vamos lançar subclasses de `DomainError`, cada uma com um `code` estável (ex.: `INVALID_SKU`). Um exception filter global na infraestrutura traduz esses erros em respostas HTTP 4xx. Não adotamos `Result/Either`: ele obrigaria cada chamada a tratar ou repassar o erro, e o código do domínio e dos casos de uso ficaria cheio de encadeamento só para levar o erro até a borda.
 
 ## Consequências
 
