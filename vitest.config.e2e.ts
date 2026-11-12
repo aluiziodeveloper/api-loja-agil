@@ -16,6 +16,7 @@ export default defineConfig({
     maxWorkers: E2E_WORKERS,
     env: {
       JWT_SECRET: 'e2e-secret-with-at-least-32-characters',
+      LOG_LEVEL: 'silent',
     },
     coverage: {
       provider: 'v8',

@@ -62,6 +62,10 @@ O primeiro operador é promovido no servidor, com `npm run build && npm run oper
 
 As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort` (`name`, `price`, `sku`), `filter` e `includeInactive`, e a de usuários, `sort` (`name`, `email`) e `filter`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `GET /health/ready`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
 
+## Logs
+
+Uma linha JSON por evento, na saída padrão, com o nível em `LOG_LEVEL` (`info` por padrão; `fatal`, `error`, `warn`, `debug`, `trace` ou `silent`). Cada requisição gera uma linha `request completed` com o `reqId`, que também volta no header `x-request-id` da resposta (um `x-request-id` recebido do proxy é reaproveitado). Status 5xx sai como `error`, 4xx como `warn`; as sondas `/health` ficam de fora. Token, cookies e senhas aparecem como `[Redacted]`. Em desenvolvimento, as linhas saem legíveis (`pino-pretty`); nos testes, silenciosas (`LOG_LEVEL=info` mostra).
+
 ## Estrutura
 
 ```text

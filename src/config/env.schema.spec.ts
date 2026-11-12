@@ -13,6 +13,7 @@ describe('validateEnv', () => {
       PORT: 3000,
       ...required,
       JWT_EXPIRES_IN_SECONDS: 3600,
+      LOG_LEVEL: 'info',
     });
   });
 
@@ -24,6 +25,12 @@ describe('validateEnv', () => {
 
   it.each(['abc', '0', '70000'])('should reject invalid PORT "%s"', (port) => {
     expect(() => validateEnv({ ...required, PORT: port })).toThrow(/PORT/);
+  });
+
+  it('should reject an unknown LOG_LEVEL', () => {
+    expect(() => validateEnv({ ...required, LOG_LEVEL: 'verbose' })).toThrow(
+      /LOG_LEVEL/,
+    );
   });
 
   it('should reject an unknown NODE_ENV', () => {
