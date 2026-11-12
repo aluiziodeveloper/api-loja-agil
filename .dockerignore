@@ -1,5 +1,19 @@
+# Só entra na imagem o que o build precisa. O resto atrasa o build, aumenta o
+# contexto e, no caso do .env, vazaria segredo para dentro de uma camada.
+.git
+.github
 node_modules
 dist
 coverage
-.git
+reports
+.stryker-tmp
+src/generated
 .env
+.env.*
+!.env.example
+*.log
+Dockerfile*
+compose*.yaml
+docs
+katas
+test
