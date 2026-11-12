@@ -4,6 +4,8 @@ import { InvalidSearchParamsError } from './invalid-search-params.error.js';
 export const SortDirection = { ASC: 'asc', DESC: 'desc' } as const;
 export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];
 
+export const DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASC;
+
 const DEFAULT_PER_PAGE = 15;
 const MAX_PER_PAGE = 100;
 
@@ -59,7 +61,9 @@ function parseSort<Field extends string>(
   return field ?? defaultSort;
 }
 
-function parseSortDirection(direction = 'asc'): SortDirection {
+function parseSortDirection(
+  direction: string = DEFAULT_SORT_DIRECTION,
+): SortDirection {
   if (direction !== SortDirection.ASC && direction !== SortDirection.DESC) {
     throw new InvalidSearchParamsError('sortDirection deve ser asc ou desc.');
   }

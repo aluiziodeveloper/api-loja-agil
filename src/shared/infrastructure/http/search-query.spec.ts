@@ -1,4 +1,4 @@
-import { searchQuery } from './search-query.js';
+import { searchQuery, sortQuery } from './search-query.js';
 
 describe('searchQuery', () => {
   it('should convert the numbers of the query string', () => {
@@ -13,5 +13,11 @@ describe('searchQuery', () => {
 
   it('should reject a page that is not a number', () => {
     expect(searchQuery.safeParse({ page: 'abc' }).success).toBe(false);
+  });
+
+  it('should keep a sort field out of the list for the SearchParams to refuse', () => {
+    const sort = sortQuery({ sortableFields: ['name'], defaultSort: 'name' });
+
+    expect(sort.parse('password')).toBe('password');
   });
 });
