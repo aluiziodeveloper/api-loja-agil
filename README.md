@@ -54,12 +54,13 @@ Toda resposta de sucesso vem em `{ "data" }` (uma página, em `{ "data", "meta" 
 | Estoque    | `GET /stock/:sku`, `POST /stock/:sku/receipts`, `POST /stock/:sku/adjustments`, `PUT /stock/:sku/minimum-level`, `GET /stock/:sku/movements`                                                                             |
 | Pedidos    | `POST /orders`, `GET /orders`, `GET /orders/:id`, `POST /orders/:id/items`, `DELETE /orders/:id/items/:sku`, `PUT /orders/:id/coupon`, `DELETE /orders/:id/coupon`, `POST /orders/:id/place`, `/pay`, `/ship`, `/cancel` |
 | Cupons     | `POST /coupons`                                                                                                                                                                                                          |
+| Saúde      | `GET /health` (o processo está vivo), `GET /health/ready` (pronta para tráfego: o banco responde; senão, 503 `NOT_READY`)                                                                                                |
 
 Para explorar a API em desenvolvimento, `npm run db:seed` cria a operadora `olga@loja.dev`, os clientes `ana@loja.dev` e `bruno@loja.dev` (senha `caneca123`), quatro produtos com estoque e o cupom `AGIL10`.
 
 O primeiro operador é promovido no servidor, com `npm run build && npm run operator:promote -- <email>`; depois, um operador promove outro por `POST /operators`.
 
-As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort` (`name`, `price`, `sku`), `filter` e `includeInactive`, e a de usuários, `sort` (`name`, `email`) e `filter`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
+As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos também `sort` (`name`, `price`, `sku`), `filter` e `includeInactive`, e a de usuários, `sort` (`name`, `email`) e `filter`. Toda rota exige `Authorization: Bearer <token>` (de `POST /auth/sign-in`), menos `GET /health`, `GET /health/ready`, `POST /users`, `POST /auth/sign-in`, `GET /products` e `GET /products/:id`. Gestão de usuários, produtos, estoque, cupons e o despacho de pedidos são só do perfil `OPERATOR` (RN03).
 
 ## Estrutura
 

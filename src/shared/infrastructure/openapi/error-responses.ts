@@ -4,11 +4,12 @@ import { z } from 'zod';
 import type { ErrorStatusMap } from '../http/error-response.js';
 import { responseSchema } from './zod-schema.js';
 
-/** Os erros da própria borda HTTP: validação e os dois guards. */
+/** Os erros da própria borda HTTP: validação, os dois guards e a prontidão. */
 const edgeErrorStatus: ErrorStatusMap = {
   VALIDATION_FAILED: HttpStatus.BAD_REQUEST,
   UNAUTHORIZED: HttpStatus.UNAUTHORIZED,
   FORBIDDEN: HttpStatus.FORBIDDEN,
+  NOT_READY: HttpStatus.SERVICE_UNAVAILABLE,
 };
 
 /** O envelope `{ error }`, com só os códigos possíveis naquele status. */

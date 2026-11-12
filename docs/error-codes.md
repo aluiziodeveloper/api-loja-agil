@@ -76,6 +76,7 @@ Erros que não vêm do domínio:
 - `VALIDATION_FAILED` (400): a requisição não tem o formato esperado; `details` lista cada campo, com `path` e `message`.
 - `UNAUTHORIZED` (401): rota protegida sem token, ou com um token que a API não emitiu, expirado ou adulterado. A mensagem não diz qual (ADR 0014).
 - `FORBIDDEN` (403): o token é válido, mas o perfil não pode usar a rota (RN03).
+- `NOT_READY` (503): `GET /health/ready` quando a aplicação não pode atender, porque o banco não responde. A plataforma tira a instância do balanceador até ela voltar.
 - `INTERNAL_ERROR` (500): falha inesperada. A mensagem e a pilha vão para o log, nunca para o cliente.
 - Os demais erros HTTP usam o nome do status como código, como `NOT_FOUND` para uma rota inexistente.
 
