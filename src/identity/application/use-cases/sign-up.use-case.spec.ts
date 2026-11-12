@@ -3,7 +3,6 @@ import { Email } from '../../domain/email.value-object.js';
 import { WeakPasswordError } from '../../domain/weak-password.error.js';
 import { FakePasswordHasher } from '../__tests__/fake-password-hasher.js';
 import { InMemoryUserRepository } from '../__tests__/in-memory-user.repository.js';
-import { EmailAlreadyInUseError } from '../errors/email-already-in-use.error.js';
 import { SignUpUseCase } from './sign-up.use-case.js';
 
 describe('SignUpUseCase', () => {
@@ -50,7 +49,12 @@ describe('SignUpUseCase', () => {
         email: 'ANA@lojaagil.com',
         password: 'agil2026',
       }),
-    ).rejects.toThrow(EmailAlreadyInUseError);
+    ).rejects.toThrow(
+      expect.objectContaining({
+        code: 'EMAIL_ALREADY_IN_USE',
+        message: 'O e-mail "ana@lojaagil.com" já está em uso.',
+      }),
+    );
   });
 
   it('should not store anything when the input is invalid', async () => {

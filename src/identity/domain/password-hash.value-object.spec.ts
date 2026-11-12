@@ -16,7 +16,10 @@ describe('PasswordHash', () => {
 
   it('should report the INVALID_PASSWORD_HASH code', () => {
     expect(() => PasswordHash.fromHash('')).toThrow(
-      expect.objectContaining({ code: 'INVALID_PASSWORD_HASH' }),
+      expect.objectContaining({
+        code: 'INVALID_PASSWORD_HASH',
+        message: 'Hash de senha inválido: o valor não pode ser vazio.',
+      }),
     );
   });
 });

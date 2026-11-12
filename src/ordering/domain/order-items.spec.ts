@@ -42,6 +42,18 @@ describe('OrderItems', () => {
     ]);
   });
 
+  it('should change only the item of the SKU that gets more units', () => {
+    const items = OrderItems.empty()
+      .add(item('CAN001', 2))
+      .add(item('CAM001', 1))
+      .add(item('CAN001', 3));
+
+    expect(items.toSnapshot()).toEqual([
+      { sku: 'CAN001', unitPriceInCents: 1000, quantity: 5 },
+      { sku: 'CAM001', unitPriceInCents: 1000, quantity: 1 },
+    ]);
+  });
+
   it('should never change the original collection', () => {
     const empty = OrderItems.empty();
 

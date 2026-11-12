@@ -23,8 +23,16 @@ describe('Email', () => {
     '@lojaagil.com',
     'ana@lojaagil',
     'ana silva@lojaagil.com',
+    'ana@lojaagil.com x',
   ])('should reject the invalid address "%s"', (value) => {
     expect(() => Email.create(value)).toThrow(InvalidEmailError);
+  });
+
+  it('should accept an address of exactly 254 characters', () => {
+    const value = `${'a'.repeat(64)}@${'b'.repeat(185)}.com`;
+
+    expect(value).toHaveLength(254);
+    expect(Email.create(value).toString()).toBe(value);
   });
 
   it('should reject addresses longer than 254 characters', () => {

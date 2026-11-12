@@ -36,6 +36,10 @@ describe('SearchParams', () => {
     expect(params.filter()).toBe('caneca');
   });
 
+  it('should accept 100 items per page, the maximum', () => {
+    expect(SearchParams.create({ perPage: 100 }, options).perPage()).toBe(100);
+  });
+
   it('should compute how many items to skip', () => {
     expect(SearchParams.create({ page: 1 }, options).offset()).toBe(0);
     expect(

@@ -10,6 +10,7 @@ export function movementSearchParams(
   input: Omit<SearchParamsInput, 'sort' | 'filter'>,
 ): MovementSearchParams {
   return SearchParams.create(input, {
+    // Stryker disable next-line ArrayDeclaration: o `sort` não chega do cliente (fica fora do tipo), então a lista nunca é consultada.
     sortableFields: ['occurredAt'],
     defaultSort: 'occurredAt',
   });

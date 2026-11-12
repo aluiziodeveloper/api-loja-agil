@@ -44,16 +44,23 @@ describe('UniqueId', () => {
       expect(id.toString()).toBe('0195f3a1-7c2b-7d4e-9f10-2a3b4c5d6e7f');
     });
 
-    it.each(['', '123', 'not-a-uuid', '0195f3a1-7c2b-7d4e-9f10-2a3b4c5d6e7'])(
-      'should reject the invalid value "%s"',
-      (value) => {
-        expect(() => UniqueId.from(value)).toThrow(InvalidIdError);
-      },
-    );
+    it.each([
+      '',
+      '123',
+      'not-a-uuid',
+      '0195f3a1-7c2b-7d4e-9f10-2a3b4c5d6e7',
+      'x0195f3a1-7c2b-7d4e-9f10-2a3b4c5d6e7f',
+      '0195f3a1-7c2b-7d4e-9f10-2a3b4c5d6e7fx',
+    ])('should reject the invalid value "%s"', (value) => {
+      expect(() => UniqueId.from(value)).toThrow(InvalidIdError);
+    });
 
     it('should report the INVALID_ID code', () => {
       expect(() => UniqueId.from('123')).toThrow(
-        expect.objectContaining({ code: 'INVALID_ID' }),
+        expect.objectContaining({
+          code: 'INVALID_ID',
+          message: 'Identificador inválido: "123".',
+        }),
       );
     });
   });
