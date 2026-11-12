@@ -66,6 +66,10 @@ As buscas aceitam `page`, `perPage` (até 100) e `sortDirection`; a de produtos 
 
 Uma linha JSON por evento, na saída padrão, com o nível em `LOG_LEVEL` (`info` por padrão; `fatal`, `error`, `warn`, `debug`, `trace` ou `silent`). Cada requisição gera uma linha `request completed` com o `reqId`, que também volta no header `x-request-id` da resposta (um `x-request-id` recebido do proxy é reaproveitado). Status 5xx sai como `error`, 4xx como `warn`; as sondas `/health` ficam de fora. Token, cookies e senhas aparecem como `[Redacted]`. Em desenvolvimento, as linhas saem legíveis (`pino-pretty`); nos testes, silenciosas (`LOG_LEVEL=info` mostra).
 
+## Encerramento
+
+No `SIGTERM` (ou `SIGINT`), a aplicação para de aceitar conexões, termina as requisições em andamento (as respostas que ainda saem levam `Connection: close`, para o keep-alive não segurar o encerramento), desconecta o banco e sai com código 0. O log registra o sinal recebido e o fim.
+
 ## Estrutura
 
 ```text
@@ -81,13 +85,5 @@ src/
     <contexto>.module.ts  composição do contexto no NestJS
   integration/ liga os contextos: adaptadores e inscrições nos eventos (ADR 0011)
   generated/   client do Prisma, gerado (fora do Git)
-prisma/        schema por contexto e migrations
-katas/         exercícios do curso, fora do build
+prisma/        schema por co
 ```
-
-## Documentação
-
-- [Decisões de arquitetura (ADRs)](docs/adr/README.md)
-- [Glossário: linguagem ubíqua](docs/glossary.md)
-- [Códigos de erro da API](docs/error-codes.md)
-- Documentação OpenAPI: `/docs` com a aplicação no ar

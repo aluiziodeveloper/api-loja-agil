@@ -16,6 +16,10 @@ async function bootstrap(): Promise<void> {
     { bufferLogs: true },
   );
   app.useLogger(app.get(Logger));
+  // No SIGTERM da plataforma, o Nest chama `app.close()`: o servidor termina o
+  // que está em andamento, e só então o banco desconecta. `useProcessExit`
+  // sai com `process.exit(0)`, que deixa o pino escrever as últimas linhas.
+  app.enableShutdownHooks(['SIGTERM', 'SIGINT'], { useProcessExit: true });
   setupOpenApi(app, appErrorStatus);
   const config = app.get<ConfigService<Env, true>>(ConfigService);
 

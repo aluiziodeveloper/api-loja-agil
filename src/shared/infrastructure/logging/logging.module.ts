@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import type { Env } from '../../../config/env.schema.js';
 import { loggerOptions } from './logger-options.js';
+import { ShutdownLog } from './shutdown-log.js';
 
 /**
  * O logger do Nest vira o pino. Dentro de uma requisição, ele usa o logger
@@ -23,5 +24,6 @@ import { loggerOptions } from './logger-options.js';
       }),
     }),
   ],
+  providers: [ShutdownLog],
 })
 export class LoggingModule {}
