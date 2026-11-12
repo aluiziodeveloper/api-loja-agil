@@ -19,5 +19,6 @@
 | [0015](0015-end-to-end-test-strategy.md)                    | Estratégia dos testes end-to-end                         | aceita |
 | [0016](0016-openapi-from-the-zod-schemas.md)                | Documentação OpenAPI a partir dos schemas Zod            | aceita |
 | [0017](0017-mutation-testing-and-test-reliability.md)       | Teste de mutação e testes confiáveis                     | aceita |
+| [0018](0018-production-image-and-deploy.md)                 | Imagem de produção, entrega contínua e deploy            | aceita |
 
 Para uma nova decisão, copie `template.md` com o próximo número.

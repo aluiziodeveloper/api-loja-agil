@@ -87,6 +87,8 @@ Depois de o CI passar na `main`, o workflow `CD` monta a imagem de produção, f
 - `ghcr.io/aluiziodeveloper/api-loja-agil:<sha do commit>`, a versão exata;
 - `ghcr.io/aluiziodeveloper/api-loja-agil:latest`, a mais recente.
 
+Com o secret `RENDER_DEPLOY_HOOK_URL` no repositório, o CD também pede ao Render o deploy da tag do commit. O `render.yaml` descreve o serviço e o banco; o passo a passo está na [ADR 0018](docs/adr/0018-production-image-and-deploy.md).
+
 ## Estrutura
 
 ```text
