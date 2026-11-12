@@ -20,6 +20,15 @@ describe('PercentageDiscount', () => {
     );
   });
 
+  it.each([
+    [1, 150],
+    [100, 2000],
+  ])('should accept %d percent, an edge of the range', (percent, discount) => {
+    const coupon = PercentageDiscount.of(percent, cents(2000));
+
+    expect(coupon.discountFor(cents(15_000))).toEqual(cents(discount));
+  });
+
   it.each([0, 101, 12.5])('should reject %d percent', (percent) => {
     expect(() => PercentageDiscount.of(percent, cents(2000))).toThrow(
       expect.objectContaining({

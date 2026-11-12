@@ -42,6 +42,14 @@ export default defineConfig({
           branches: 100,
           statements: 100,
         },
+        // Os casos de uso também: é onde a mutação procura, e um mutante sem
+        // cobertura nem chega a ser testado.
+        'src/**/application/**': {
+          lines: 100,
+          functions: 100,
+          branches: 100,
+          statements: 100,
+        },
       },
     },
   },

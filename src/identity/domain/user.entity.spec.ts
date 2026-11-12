@@ -56,6 +56,7 @@ describe('User', () => {
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(UserRegistered);
       expect(events[0]).toMatchObject({
+        eventName: 'UserRegistered',
         aggregateId: user.id.toString(),
         email: 'ana@lojaagil.com',
       });

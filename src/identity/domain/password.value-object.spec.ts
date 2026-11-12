@@ -8,6 +8,13 @@ describe('Password', () => {
     expect(password.reveal()).toBe('agil2026');
   });
 
+  it('should accept a password of exactly 128 characters', () => {
+    const value = `a1${'x'.repeat(126)}`;
+
+    expect(value).toHaveLength(128);
+    expect(() => Password.create(value)).not.toThrow();
+  });
+
   it('should keep spaces and symbols exactly as typed', () => {
     const password = Password.create(' Loja Ágil #1 ');
 
