@@ -1,4 +1,4 @@
-# Imagem de desenvolvimento: só o necessário para rodar Node, Git e o Prisma.
+# Imagem de desenvolvimento: só o necessário para rodar o Node e o Prisma (o Git fica na máquina).
 FROM node:26-alpine
 
 RUN apk add --no-cache openssl
