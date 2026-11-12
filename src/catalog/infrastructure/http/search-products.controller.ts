@@ -10,7 +10,11 @@ import {
   type Page,
   presentPage,
 } from '../../../shared/infrastructure/http/page.js';
-import { searchQuery } from '../../../shared/infrastructure/http/search-query.js';
+import {
+  searchQuery,
+  sortQuery,
+} from '../../../shared/infrastructure/http/search-query.js';
+import { productSearchOptions } from '../../application/product-search.js';
 import { ZodValidationPipe } from '../../../shared/infrastructure/http/zod-validation.pipe.js';
 import { SearchProductsUseCase } from '../../application/use-cases/search-products.use-case.js';
 import {
@@ -22,6 +26,7 @@ import { Public } from '../../../shared/infrastructure/auth/public.decorator.js'
 
 /** `?includeInactive=true` traz também os produtos desativados. */
 export const searchProductsQuery = searchQuery.extend({
+  sort: sortQuery(productSearchOptions),
   includeInactive: z.stringbool().optional(),
 });
 

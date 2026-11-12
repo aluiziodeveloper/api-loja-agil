@@ -72,6 +72,43 @@ describe('OpenAPI schemas (e2e)', () => {
     });
   });
 
+  it('should list the fields a search can be sorted by', () => {
+    expect(operation('/products', 'get').parameters).toContainEqual({
+      name: 'sort',
+      in: 'query',
+      required: false,
+      schema: {
+        type: 'string',
+        enum: ['name', 'price', 'sku'],
+        default: 'name',
+      },
+    });
+    expect(operation('/users', 'get').parameters).toContainEqual({
+      name: 'sort',
+      in: 'query',
+      required: false,
+      schema: { type: 'string', enum: ['name', 'email'], default: 'name' },
+    });
+  });
+
+  it('should list the directions of every search', () => {
+    const searches = [
+      operation('/products', 'get'),
+      operation('/users', 'get'),
+      operation('/orders', 'get'),
+      operation('/stock/{sku}/movements', 'get'),
+    ];
+
+    for (const { parameters } of searches) {
+      expect(parameters).toContainEqual({
+        name: 'sortDirection',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', enum: ['asc', 'desc'], default: 'asc' },
+      });
+    }
+  });
+
   it('should say that a response without body has none', () => {
     const { responses } = operation('/me', 'delete');
 
