@@ -34,6 +34,19 @@ describe('PrismaDatabase', () => {
     return rows.map((row) => row.sku);
   }
 
+  it('should answer a ping while the database is up', async () => {
+    await expect(database.ping()).resolves.toBeUndefined();
+  });
+
+  it('should fail the ping when the database cannot be reached', async () => {
+    const unreachable = new PrismaDatabase(
+      'postgresql://postgres:docker@127.0.0.1:1/ninguem',
+    );
+
+    await expect(unreachable.ping()).rejects.toThrow();
+    await unreachable.disconnect();
+  });
+
   it('should talk to the test database', async () => {
     const [row] = await database.client().$queryRaw<
       { name: string }[]

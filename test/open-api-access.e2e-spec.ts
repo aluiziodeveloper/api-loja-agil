@@ -48,6 +48,7 @@ describe('OpenAPI access and errors (e2e)', () => {
 
     expect(open.sort()).toEqual([
       'GET /health',
+      'GET /health/ready',
       'GET /products',
       'GET /products/{id}',
       'POST /auth/sign-in',

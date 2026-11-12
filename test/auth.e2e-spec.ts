@@ -64,6 +64,7 @@ describe('Authentication (e2e)', () => {
 
   it.each([
     ['GET', '/health'],
+    ['GET', '/health/ready'],
     ['GET', '/products'],
   ] as const)('should keep %s %s open to anyone', async (method, url) => {
     const response = await api.request(method, url);

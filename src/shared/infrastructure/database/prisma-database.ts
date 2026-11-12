@@ -35,6 +35,11 @@ export class PrismaDatabase implements Transaction {
     );
   }
 
+  /** Uma consulta trivial: falha se o banco não responde. */
+  async ping(): Promise<void> {
+    await this.prisma.$queryRaw`SELECT 1`;
+  }
+
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }
